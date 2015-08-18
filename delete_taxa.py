@@ -38,10 +38,12 @@ def randomfilter(alltaxa, n):
 
 funMap['random'] = randomfilter
 
-def constantfilter(alltaxa, n, labels=None):
-    if not labels:
-        labels = set(np.random.choice(alltaxa, size=n, replace=False))
-    return labels
+
+def constantfilter(alltaxa, n):
+    if n not in constantfilter.labels:
+        constantfilter.labels[n] = set(np.random.choice(alltaxa, size=n, replace=False))
+    return constantfilter.labels[n]
+constantfilter.labels = {}
 
 funMap['constant'] = constantfilter
 
