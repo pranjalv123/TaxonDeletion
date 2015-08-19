@@ -70,7 +70,7 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     ndelete = args['ndelete'][0]
-    maxlens = args['maxlen']
+    maxlens = args['maxlen'][0]
     if not maxlens:
         maxlens = [-1]
 
