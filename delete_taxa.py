@@ -41,7 +41,7 @@ if __name__ == '__main__':
         truegenetrees = dendropy.TreeList.get_from_path(args['truegenetrees'], 'newick', taxon_namespace = tn)
     else:
         truegenetrees = None
-
+ 
 
     alignments = read_multiphylip(args['alignments'], taxon_namespace = tn)
     speciestree = dendropy.Tree.get_from_path(args['speciestree'], 'newick', taxon_namespace = tn)
