@@ -1,121 +1,77 @@
 import dendropy
 import numpy as np
-
-def delete_taxa(seqsubset, n, maxlen, filterfun):
-    splits = [i.split() for i in seqsubset]
-    splits = [i for i in splits if i]
-    alltaxa = [i[0] for i in splits if i[1][0] in 'ACTG']
-    if len(alltaxa) == 0:
-        return False
-    l0 = int(seqsubset[0].split()[1])
-
-    labels = set(filterfun(alltaxa, n))
-    modseq = []
-    if maxlen >= 0 and  l0 > maxlen and maxlen > 0:
-        l = maxlen 
-    else:
-        l = l0
-    modseq.append(seqsubset[0].replace(str(l0), str(l)).replace("\n", ""))
-    for i in splits[1:]:
-        if i[0] in labels:
-            modseq.append(i[0] + " " + i[1].replace('A', '-').replace('C', '-').replace('T', '-').replace('G', '-')[:l])
-        else:
-            modseq.append(i[0] + " " + i[1][:l])
-    return modseq
-    
-    
-def isboundary(s):
-    splits = s.split()
-    if len(splits) > 1:
-        return splits[1].isdigit()
-    return False
-
-funMap = {}
-
-def randomfilter(alltaxa, n):
-    labels = set(np.random.choice(alltaxa, size=n, replace=False))
-    return labels
-
-funMap['random'] = randomfilter
-
-
-def constantfilter(alltaxa, n):
-    if n not in constantfilter.labels:
-        constantfilter.labels[n] = set(np.random.choice(alltaxa, size=n, replace=False))
-    return constantfilter.labels[n]
-constantfilter.labels = {}
-
-funMap['constant'] = constantfilter
-
 import sys
 import argparse
+from DataSet import *
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Delete taxa from PHYLIP sequence files")
 
-    parser.add_argument('-i', '--input', nargs='*', action='append')
-    parser.add_argument('-l', '--maxlen', dest='maxlen', nargs='*', action='append', type=int)
-    parser.add_argument('-n', '--ndelete', dest='ndelete',nargs='*',  action='append', type=int)
-    parser.add_argument('-t', '--type', dest='types',nargs='*', action='append')
+#    parser.add_argument('-e', '--estimatedgenetrees', required=False)
+    parser.add_argument('-t', '--truegenetrees', required=False)
+    parser.add_argument('-a', '--alignments', required=True)
+    parser.add_argument('-s', '--speciestree', required=True)
+    parser.add_argument('-l', '--maxlen', type=int, required=True)
+    parser.add_argument('-n', '--ndelete', type=int, required=True)
+    parser.add_argument('-v', '--variance', type=int, required=True)
+    parser.add_argument('-r', '--restrict', type=int, required=True)
+    parser.add_argument('-o', '--output',  required=True)
     
-    # if len(sys.argv) < 4:
-    #     print "delete_taxa.py input maxlen ndelete...\nInput should be an alignment file in PHYLIP format."
-    #     exit()
-    # seq_inp = sys.argv[1]
-    # ndelete = []
-    # maxlen = int(sys.argv[2])
-    # for i in sys.argv[3:]:
-    #     ndelete.append(int(i))
 
+    tn = dendropy.TaxonNamespace()
+    
     args = vars(parser.parse_args())
+    output = args['output']
 
-    ndelete = args['ndelete'][0]
-    maxlens = args['maxlen']
-    if not maxlens:
-        maxlens = [-1]
+    ndelete = args['ndelete']
+    nrestrict = args['restrict']
+    sigma = (args['variance'])**0.5
+    if 'maxlen' in args:
+        maxlen = args['maxlen']
+    else:
+        maxlen = None
+        
+    # if 'estimatedgenetrees' in args:
+    #     estimatedgenetrees = dendropy.TreeList.get_from_path(args['estimatedgenetrees'], 'newick', taxon_namespace=tn)
+    # else:
+    #     estimatedgentrees = None
+        
+    if 'truegenetrees' in args and args['truegenetrees']:
+        truegenetrees = dendropy.TreeList.get_from_path(args['truegenetrees'], 'newick', taxon_namespace = tn)
+    else:
+        truegenetrees = None
 
-    inputs = args['input'][0]
 
-    types = args['types'][0]
+    alignments = read_multiphylip(args['alignments'], taxon_namespace = tn)
+    speciestree = dendropy.Tree.get_from_path(args['speciestree'], 'newick', taxon_namespace = tn)
+
+    ds = DataSet(tn, truegenetrees, alignments, speciestree)
+    print ds.seqs[0].as_string('phylip')
     
-    ndelete.sort()
-    print args
-    print ndelete
+    restricted = ds.delete_taxa_uniform(nrestrict, genetrees=True, seqs=True, speciestree=True, maxlen=maxlen)
 
-    for seq_inp in inputs:
-        if seq_inp:
-            seqs = [i for i in open(seq_inp).readlines() if i]
-            
-            seq_gene_starts = [i[0] for i in enumerate(seqs) if isboundary(i[1])]
-            seq_gene_starts.append(len(seqs))
+    s = restricted.seqs[0]
+    print sorted([int(i.label) for i in s._taxon_sequence_map.keys()])
+#    print s.as_string('phylip')
 
-        for maxlen in maxlens:
-            for type_str in types:
-                type = funMap[type_str]
-                done = False
-                for n in ndelete:
-                    if done:
-                        break
-                    if maxlen >= 0:
-                        outseq = open(seq_inp + "l%02dm%02d" % (maxlen, n), 'w')
-                    else:
-                        outseq = open(seq_inp + "m%02d" % (n, ), 'w')
+    s = restricted.seqs[0]
+    print sorted([int(i.label) for i in s._taxon_sequence_map.keys()])
+#    print s.as_string('phylip')
 
-                    i = 0
+    
+    
+    missing = restricted.delete_taxa(ndelete, sigma, genetrees=True, seqs=True, maxlen=maxlen)
 
-                    for (s1, s2) in zip(seq_gene_starts[:-1], seq_gene_starts[1:]):
-                        s1 = seq_gene_starts[i]
-                        s2 = seq_gene_starts[i+1]
-                        modseq = delete_taxa(seqs[s1:s2], n, maxlen, type)
-                        if modseq == False:
-                            outseq.close()
-                            done = True
-                            break
-                        outseq.write('\n'.join(modseq))
-                        outseq.write('\n')
-                        i += 1
 
-        if seq_inp:
-            outseq.close()
+    s = missing.seqs[0]
+    print sorted([int(i.label) for i in s._taxon_sequence_map.keys()])
+    print s.as_string('phylip')
+        
+    estimated = DataSet(tn, None, missing.seqs, missing.speciestree)
+    estimated.est_trees_fasttree()
+    print estimated.genetrees[0]
+    missing.write(output, speciestree=True)
+    estimated.write(output + '_est', genetrees=True, seqs=True)
 
-                    
+    
