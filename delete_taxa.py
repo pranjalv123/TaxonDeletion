@@ -37,7 +37,9 @@ if __name__ == '__main__':
     # else:
     #     estimatedgentrees = None
         
+
     if 'truegenetrees' in args and args['truegenetrees']:
+        print "Reading trees..."
         truegenetrees = dendropy.TreeList.get_from_path(args['truegenetrees'], 'newick', taxon_namespace = tn)
     else:
         truegenetrees = None
@@ -45,7 +47,6 @@ if __name__ == '__main__':
     print "Reading alignments..."
     alignments = read_multiphylip(args['alignments'], taxon_namespace = tn)
 
-    print "Reading trees..."
     speciestree = dendropy.Tree.get_from_path(args['speciestree'], 'newick', taxon_namespace = tn)
 
     ds = DataSet(tn, truegenetrees, alignments, speciestree)
