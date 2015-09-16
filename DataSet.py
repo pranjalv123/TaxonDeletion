@@ -15,6 +15,8 @@ def read_multiphylip(path, taxon_namespace):
         # read first n lines
         matrices.append(dendropy.DnaCharacterMatrix.get_from_string('\n'.join(lines[ind:ind+n+1]), 'phylip', taxon_namespace=taxon_namespace))
         ind += n + 1
+        if len(matrices) % 10 == 0:
+            print len(matrices), "sequences read"
     return matrices
 
 

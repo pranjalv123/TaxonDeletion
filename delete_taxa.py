@@ -42,35 +42,28 @@ if __name__ == '__main__':
     else:
         truegenetrees = None
  
-
+    print "Reading alignments..."
     alignments = read_multiphylip(args['alignments'], taxon_namespace = tn)
+
+    print "Reading trees..."
     speciestree = dendropy.Tree.get_from_path(args['speciestree'], 'newick', taxon_namespace = tn)
 
     ds = DataSet(tn, truegenetrees, alignments, speciestree)
-    print ds.seqs[0].as_string('phylip')
-    
+
+    print "Restricting taxa..."
     restricted = ds.delete_taxa_uniform(nrestrict, genetrees=True, seqs=True, speciestree=True, maxlen=maxlen)
 
-    s = restricted.seqs[0]
-    print sorted([int(i.label) for i in s._taxon_sequence_map.keys()])
-#    print s.as_string('phylip')
-
-    s = restricted.seqs[0]
-    print sorted([int(i.label) for i in s._taxon_sequence_map.keys()])
-#    print s.as_string('phylip')
-
-    
-    
+    print "Deleting taxa..."    
     missing = restricted.delete_taxa(ndelete, sigma, genetrees=True, seqs=True, maxlen=maxlen)
 
 
     s = missing.seqs[0]
-    print sorted([int(i.label) for i in s._taxon_sequence_map.keys()])
-    print s.as_string('phylip')
-        
+    
     estimated = DataSet(tn, None, missing.seqs, missing.speciestree)
+    print "Estimating trees..."
     estimated.est_trees_fasttree()
-    print estimated.genetrees[0]
+
+    print "Writing data..."
     missing.write(output, speciestree=True)
     estimated.write(output + '_est', genetrees=True, seqs=True)
 
