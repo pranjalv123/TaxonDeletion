@@ -6,7 +6,7 @@ import StringIO
 
 
 def read_multiphylip(path, taxon_namespace):
-    lines = open(path).readlines()
+    lines = [i for i in open(path).readlines() if i.strip()]
     ind = 0
     matrices = []
     while ind < len(lines):
