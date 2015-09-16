@@ -38,13 +38,10 @@ class DataSet:
         return dsnew
 
     def delete_taxa(self, ndelete, sigma=0, genetrees=None, seqs=None, maxlen=None, const=False):
-        print sorted([int(i.label) for i in self.seqs[0]._taxon_sequence_map.keys()])
-        print self.seqs[0].as_string('phylip')
 
         deletion_lists = []
         if const:
             dl = (np.random.choice(list(self.taxon_namespace), size=ndelete, replace=False))
-            print dl
             for i in self.seqs:
                 deletion_lists.append(dl)
         else:
@@ -52,7 +49,7 @@ class DataSet:
                 taxa = [j for j in i if len(i[j])]
                 nd = min(ndelete + np.random.randn() * sigma,  len([1 for j in i if len(i[j])]))
                 deletion_lists.append(np.random.choice(taxa, size=nd, replace=False))
-        print deletion_lists
+
         newgenetrees=None
         newseqs=None
         newspeciestree=None
@@ -67,10 +64,6 @@ class DataSet:
             for (seq, deletion_list) in zip(self.seqs, deletion_lists):
                 seqnew = seq.clone()
 
-                print sorted([int(i.label) for i in seqnew._taxon_sequence_map.keys()])
-                print seqnew.as_string('phylip')
-
-                
                 seqnew.discard_sequences(deletion_list)
                 if maxlen:
                     for i in seqnew:
@@ -103,8 +96,6 @@ class DataSet:
 #        cmd()
         trees, err = proc.communicate(sio.getvalue())
         print err
-        print "Trees:"
-        print trees
         self.genetrees = dendropy.TreeList.get_from_string(trees, 'newick')
         
     
