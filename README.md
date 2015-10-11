@@ -1,4 +1,4 @@
-# Xylem
+# Xylem: Phylogenetic Pipelines with MPI
 
 Xylem is a library for easily constructing and running phylogenetic
 pipelines. The initial scope of Xylem is limited to method evaluation,
