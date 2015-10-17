@@ -29,8 +29,7 @@ import StringIO
 import uuid
 
 class DeleteTaxaUniform(Task):
-    def __init__(self, ndelete, *args, **kwargs):
-        super(DeleteTaxaUniform, self).__init__(*args, **kwargs)
+    def setup(self, ndelete):
         self.ndelete = ndelete
     def inputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
@@ -52,8 +51,7 @@ class DeleteTaxaUniform(Task):
         return self.result
         
 class DeleteTaxaRandom(Task):
-    def __init__(self, ndelete, sigma=0, *args, **kwargs):
-        super(DeleteTaxaRandom, self).__init__(*args, **kwargs)
+    def setup(self, ndelete, sigma=0):
         self.ndelete = ndelete
         self.sigma = sigma
     def inputs(self):

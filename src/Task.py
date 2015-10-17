@@ -29,8 +29,7 @@ import StringIO
 import uuid
 
 class Task(object): #should be a "new style class" for inheritance purposes
-    def __init__(self, cachefile=None, local=False, cache=True):
-        super(Task, self).__init__()
+    def __init__(self, cachefile=None, local=False, cache=True, *args, **kwargs):
         self.dependencies = set()
         self.depended = set()
         self.input_data = {}
@@ -44,6 +43,7 @@ class Task(object): #should be a "new style class" for inheritance purposes
         self.cache = cache
         self.cachefile = cachefile
 
+        self.setup(*args, **kwargs)
 
     #should be implemented here
     
@@ -64,8 +64,19 @@ class Task(object): #should be a "new style class" for inheritance purposes
         task_outputs = set(otherTask.outputs())
         
         for item in self.inputs():
-            if item in task_outputs:
-                self.input_data[item[0]] = otherTask.get_results()[item[0]]
+            name, tpe = item
+            if type(tpe) == tuple:
+                if name not in self.input_data:
+                    self.input_data[name] = []
+                if (name, tpe) in task_outputs:
+                    self.input_data[name].extend(otherTask.get_results()[name])
+                else:
+                    for elem in tpe:
+                        if (name, elem) in task_outputs:
+                            self.input_data[name].append(otherTask.get_results()[name])
+            else:
+                if item in task_outputs:
+                    self.input_data[name] = tpe(otherTask.get_results()[name])
         
         for i in self.dependencies:
             if i.status() != "complete":
@@ -134,7 +145,8 @@ class Task(object): #should be a "new style class" for inheritance purposes
     def read(self, fname):
         f = open(fname)
         return cPickle.load(f)
-        
+    def setup(self, *args, **kwargs):
+        pass
     #need to be implemented by children
     def run(self): #actually do the thing
         pass

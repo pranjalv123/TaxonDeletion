@@ -22,7 +22,11 @@ A Task subclass *MUST* define three functions: inputs(), outputs(),
 and run().
 
 1. inputs() returns a (possibly empty) list of tuples, each with type
-(str, type). These represent the input data for the task.
+(str, type). These represent the input data for the task. The string
+is the name of the input, and the type is the type of the input. If
+the input should be a collection of items, don't use list as a type;
+rather, give a tuple of types, where each item can be of any of those
+types. 
 
 2. output() also returns a (possibly empty) list of tuples, each with
 type (str, type). These represent the output data for the task.
@@ -36,13 +40,8 @@ functions. These should, respectively, write and read the self.result
 dictionary and are used for caching results. By default these pickle
 the dictionary.
 
-Furthermore, you may override the __init__ function, but you should
-make sure to call the superclass constructor. For example:
-
-    class MyTask(Task):
-    	  def __init__(self, arg1, arg2, *args, **kwargs):
-	      super(MyTask, self).__init__(*args, **kwargs)
-	      # do things with arg1 and arg2
+Furthermore, you may override the setup function to provide non-input
+parameters for tasks.
 
 There are also three flags you can set in the constructor or when you
 instantiate the object:

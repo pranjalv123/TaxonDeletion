@@ -25,8 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Task
 
 class CastName(Task):
-    def __init__(self, inname, outname, tpe, *args, **kwargs):
-        super(CastName, self).__init__(*args, **kwargs)
+    def setup(self, inname, outname, tpe):
         self.local=True
         self.cache=False
         self.tpe = tpe
@@ -38,11 +37,10 @@ class CastName(Task):
         return [(self.outname, self.tpe)]
     def run(self):
         self.result =  {self.outname : self.input_data[self.inname]}
-        return self.result
+        return self.result        
     
 class Exit(Task):
-    def __init__(self, *args, **kwargs):
-        super(Exit, self).__init__(*args, **kwargs)
+    def setup(self):
         self.EXIT = True
     def inputs(self):
         return []

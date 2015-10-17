@@ -29,8 +29,7 @@ import StringIO
 import uuid
 
 class ReadSpeciesTree(Task):
-    def __init__(self, location, *args, **kwargs):
-        super(ReadSpeciesTree, self).__init__(*args, **kwargs)
+    def setup(self, location):
         self.path = location
         self.cache = False
         self.local = True
@@ -45,8 +44,7 @@ class ReadSpeciesTree(Task):
         return self.result
     
 class ReadGeneTrees(Task):
-    def __init__(self, location, *args, **kwargs):
-        super(ReadGeneTrees, self).__init__(*args, **kwargs)
+    def setup(self, location):
         self.path = location
         self.cache = False
     def inputs(self):
@@ -61,8 +59,7 @@ class ReadGeneTrees(Task):
 
 
 class ReadPhylip(Task):
-    def __init__(self, location, *args, **kwargs):
-        super(ReadPhylip, self).__init__(*args, **kwargs)
+    def setup(self, location):
         self.path = location
         self.cache = False
     def inputs(self):

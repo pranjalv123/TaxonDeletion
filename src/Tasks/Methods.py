@@ -30,8 +30,6 @@ import uuid
 import ASTRID
 
 class RunFastTree(Task):
-    def __init__(self, *args, **kwargs):
-        super(RunFastTree, self).__init__(*args, **kwargs)
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -49,8 +47,7 @@ class RunFastTree(Task):
         return self.result
 
 class RunASTRID(Task):
-    def __init__(self, distmethod=None, *args, **kwargs):
-        super(RunASTRID, self).__init__(*args, **kwargs)
+    def setup(self, distmethod=None):
         self.distmethod = distmethod
         if self.distmethod==None:
             self.distmethod="auto"

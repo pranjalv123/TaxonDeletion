@@ -31,8 +31,7 @@ import StringIO
 import uuid
 
 class CompareTrees(Task):
-    def __init__(self, *args, **kwargs):
-        super(CompareTrees, self).__init__(*args, **kwargs)
+    def setup(self):
         self.local=True
     def inputs(self):
         return[("truespeciestree", dendropy.Tree), ("estimatedspeciestree", dendropy.Tree)]
