@@ -23,7 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 import Task
-import DataSet
 import cPickle
 import numpy as np
 import subprocess
