@@ -59,4 +59,6 @@ class RunASTRID(Task.Task):
         a = ASTRID.ASTRID(self.input_data["genetrees"])
         a.run(self.distmethod)
         self.result = {"estimatedspeciestree": a.tree}
+        print a.tree
+        print type(a.tree)
         return self.result

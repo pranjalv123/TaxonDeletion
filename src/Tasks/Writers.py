@@ -11,7 +11,8 @@ class WriteSpeciesTree(Task.Task):
     def outputs(self):
         return []
     def run(self):
-        self.input_data["speciestree"].write(output=self.path, schema="newick")
+        stree = self.input_data["speciestree"]
+        stree.write(path=self.path, schema="newick")
         self.result = {}
         return self.result
 
@@ -26,7 +27,7 @@ class WriteGeneTrees(Task.Task):
     def outputs(self):
         return []
     def run(self):
-        self.input_data["genetrees"].write(output=self.path, schema="newick")
+        self.input_data["genetrees"].write(path=self.path, schema="newick")
         self.result = {}
         return self.result
 
