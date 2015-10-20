@@ -27,8 +27,9 @@ import subprocess
 import StringIO
 import uuid
 import ASTRID
+import dendropy
 
-class RunFastTree(Task):
+class RunFastTree(Task.Task):
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -45,8 +46,8 @@ class RunFastTree(Task):
         self.result = {"genetrees":genetrees}
         return self.result
 
-class RunASTRID(Task):
-    def setup(self, distmethod=None):
+class RunASTRID(Task.Task):
+    def setup(self, distmethod=None, *args, **kwargs):
         self.distmethod = distmethod
         if self.distmethod==None:
             self.distmethod="auto"

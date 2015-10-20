@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import Task
+import Tasks
 from mpi4py import MPI
 
 AVAIL=1
@@ -99,7 +100,7 @@ class Scheduler:
         print "Killing PEs"
         print self.freepes
         for pe in self.freepes:
-            self.execute(Task.Exit(), pe)
+            self.execute(Tasks.Exit(), pe)
     def execute(self, task, pe):
         print "sending", task, "to", pe
         self.comm.send(task, dest=pe)

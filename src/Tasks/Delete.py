@@ -27,8 +27,8 @@ import subprocess
 import StringIO
 import uuid
 
-class DeleteTaxaUniform(Task):
-    def setup(self, ndelete):
+class DeleteTaxaUniform(Task.Task):
+    def setup(self, ndelete, *args, **kwargs):
         self.ndelete = ndelete
     def inputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
@@ -49,8 +49,8 @@ class DeleteTaxaUniform(Task):
         self.result = {"alignments":dna, "genetrees":gt, "speciestrees":st}
         return self.result
         
-class DeleteTaxaRandom(Task):
-    def setup(self, ndelete, sigma=0):
+class DeleteTaxaRandom(Task.Task):
+    def setup(self, ndelete, sigma=0, *args, **kwargs):
         self.ndelete = ndelete
         self.sigma = sigma
     def inputs(self):

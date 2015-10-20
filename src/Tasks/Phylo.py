@@ -28,9 +28,10 @@ import numpy as np
 import subprocess
 import StringIO
 import uuid
+import dendropy
 
-class CompareTrees(Task):
-    def setup(self):
+class CompareTrees(Task.Task):
+    def setup(self, *args, **kwargs):
         self.local=True
     def inputs(self):
         return[("truespeciestree", dendropy.Tree), ("estimatedspeciestree", dendropy.Tree)]

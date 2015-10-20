@@ -26,9 +26,10 @@ import numpy as np
 import subprocess
 import StringIO
 import uuid
+import dendropy
 
-class ReadSpeciesTree(Task):
-    def setup(self, location):
+class ReadSpeciesTree(Task.Task):
+    def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
         self.local = True
@@ -42,8 +43,8 @@ class ReadSpeciesTree(Task):
         self.result = {"speciestree": tree}
         return self.result
     
-class ReadGeneTrees(Task):
-    def setup(self, location):
+class ReadGeneTrees(Task.Task):
+    def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
     def inputs(self):
@@ -57,8 +58,8 @@ class ReadGeneTrees(Task):
         return self.result
 
 
-class ReadPhylip(Task):
-    def setup(self, location):
+class ReadPhylip(Task.Task):
+    def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
     def inputs(self):

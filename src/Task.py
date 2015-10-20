@@ -28,7 +28,16 @@ import StringIO
 import uuid
 
 class Task(object): #should be a "new style class" for inheritance purposes
-    def __init__(self, cachefile=None, local=False, cache=True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        cachefile=None
+        local=False
+        cache=True
+        if 'cachefile' in kwargs:
+            cachefile = kwargs['cachefile']
+        if 'local' in kwargs:
+            local = kwargs['local']
+        if 'cache' in kwargs:
+            local = kwargs['cache']
         self.dependencies = set()
         self.depended = set()
         self.input_data = {}
@@ -138,6 +147,8 @@ class Task(object): #should be a "new style class" for inheritance purposes
 
     
     #may be reimplemented by children
+    def desc(self):
+        return self.__repr__()
     def write(self, fname):
         f = open(fname, 'w')
         cPickle.dump(self.result, f, protocol=2)

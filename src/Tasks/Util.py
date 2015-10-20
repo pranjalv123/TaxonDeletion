@@ -24,8 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Task
 
-class CastName(Task):
-    def setup(self, inname, outname, tpe):
+class CastName(Task.Task):
+    def setup(self, inname, outname, tpe, *args, **kwargs):
         self.local=True
         self.cache=False
         self.tpe = tpe
@@ -39,8 +39,8 @@ class CastName(Task):
         self.result =  {self.outname : self.input_data[self.inname]}
         return self.result        
     
-class Exit(Task):
-    def setup(self):
+class Exit(Task.Task):
+    def setup(self, *args, **kwargs):
         self.EXIT = True
     def inputs(self):
         return []
