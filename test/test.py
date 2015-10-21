@@ -18,4 +18,5 @@ compare = pl.add_task(CompareTrees().require(astrid).require(truest))
                          
 
 
-pl.run()
+pl.ready()
+sched.run()

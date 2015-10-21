@@ -32,9 +32,9 @@ class Pipeline:
         self.tasks.append(task)
         task.pipeline = self
         return task
-    def run(self, cache=True, regen=False):
+    def ready(self, cache=True, regen=False):
         for task in self.tasks:
             if task.status() == "ready":
                 self.scheduler.schedule(task)
-        self.scheduler.run()
+
     
