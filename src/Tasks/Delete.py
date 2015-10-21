@@ -70,3 +70,19 @@ class DeleteTaxaRandom(Task.Task):
                 seq.discard_sequences(deletion_list)
         self.result = {"alignments":dna, "genetrees":gt}
         return self.result
+
+class LimitSeqLength(Task.Task):
+    def setup(self, maxlen, *args, **kwargs):
+        self.maxlen = maxlen
+    def inputs(self):
+        return [("alignments", (dendropy.DnaCharacterMatrix,))]
+    def outputs(self):
+        return [("alignments", (dendropy.DnaCharacterMatrix,))]
+    def run(self):
+        dna = self.input_data["alignments"]
+        for seq, g in zip(dna, gt):
+            for seq in dna:
+                del seq[i][maxlen:]
+        self.result = {"alignments":dna}
+        return self.result
+    
