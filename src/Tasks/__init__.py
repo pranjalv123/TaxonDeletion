@@ -1,3 +1,14 @@
+import dendropy
+import sys
+dendropy.datamodel.charmatrixmodel.DnaCharacterDataSequence = dendropy.DnaCharacterMatrix.DnaCharacterDataSequence
+dendropy.datamodel.charmatrixmodel.RnaCharacterDataSequence = dendropy.RnaCharacterMatrix.DnaCharacterDataSequence
+dendropy.datamodel.charmatrixmodel.NucleotideCharacterDataSequence = dendropy.NucleotideCharacterMatrix.DnaCharacterDataSequence
+dendropy.datamodel.charmatrixmodel.ProteinCharacterDataSequence = dendropy.ProteinCharacterMatrix.DnaCharacterDataSequence
+dendropy.datamodel.charmatrixmodel.RestrictionSitesCharacterDataSequence = dendropy.RestrictionSitesCharacterMatrix.DnaCharacterDataSequence
+dendropy.datamodel.charmatrixmodel.InfiniteSitesCharacterDataSequence = dendropy.InfiniteSitesCharacterMatrix.DnaCharacterDataSequence
+dendropy.datamodel.charmatrixmodel.StandardCharacterDataSequence = dendropy.StandardCharacterMatrix.DnaCharacterDataSequence
+
+
 from Methods import *
 from Delete import *
 from Phylo import *
