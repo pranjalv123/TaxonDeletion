@@ -26,6 +26,7 @@ import numpy as np
 import subprocess
 import StringIO
 import uuid
+import dendropy
 
 class DeleteTaxaUniform(Task.Task):
     def setup(self, ndelete, *args, **kwargs):
