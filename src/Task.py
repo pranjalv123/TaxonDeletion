@@ -131,7 +131,7 @@ class Task(object): #should be a "new style class" for inheritance purposes
         except Exception as e:
             print "Couldn't read file!", filename
             print e
-        self.run()
+        self.result = self.run()
         self.write(filename)
         return self.result
 
