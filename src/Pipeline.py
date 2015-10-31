@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Scheduler
 import cPickle
-
+import sys
 
 class Pipeline:
     def __init__(self, scheduler):
@@ -33,12 +33,22 @@ class Pipeline:
         task.pipeline = self
         return task
     def verify(self):
+        for t in self.tasks:
+            for i in t.inputs():
+                good = False
+                for d in t.depends():
+                    if i in d.outputs():
+                        good = True
+                if not good:
+                    print "Not found:", t, i
+                    return False
         return True
     def prune(self):
         pass
     def ready(self, cache=True, regen=False):
+        if '--verify' in sys.argv:
+            self.verify()
+            return
         for task in self.tasks:
             if task.status() == "ready":
                 self.scheduler.schedule(task)
-
-    
