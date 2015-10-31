@@ -115,9 +115,12 @@ class Task(object): #should be a "new style class" for inheritance purposes
             return self.cachefile
         return ""
     
-    def run_cached(self, regen=False):
+    def execute(self, cache=True, regen=False):
+        if not cache or not self.cache:
+            self.result = self.run()
+            return self.result
         filename = self.storefile()
-        if not filename or not self.cache:
+        if not filename:
             print "Filename", filename, "not found", self.cache
             return self.run()
         try:

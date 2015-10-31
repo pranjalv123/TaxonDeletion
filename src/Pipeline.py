@@ -32,6 +32,10 @@ class Pipeline:
         self.tasks.append(task)
         task.pipeline = self
         return task
+    def verify(self):
+        return True
+    def prune(self):
+        pass
     def ready(self, cache=True, regen=False):
         for task in self.tasks:
             if task.status() == "ready":

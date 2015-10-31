@@ -23,12 +23,57 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Task
 import Tasks
-from mpi4py import MPI
+import sys
+
+
+def Scheduler(cache=True, regen=False):
+    if '--nocache' in sys.argv:
+        cache=False
+    if '--regen' in sys.argv:
+        regen=True    
+    if '--serial' in sys.argv:
+        return SerialScheduler(cache, regen)
+    return MPIScheduler()
 
 AVAIL=1
 
-class Scheduler:
+class SerialScheduler:
+    def __init__(self, cache=True, regen=False):
+        self.cache = cache
+        self.regen = regen
+        self.unready = []
+        self.scheduled = []
+        self.tasks = {}
+        self.running = set()
+    def schedule(self, task):
+        task.set_status("scheduled")
+        self.scheduled.append(task)
+        self.tasks[task.uid] = task
+    def run(self):
+        print "Running scheduler"
+        print "scheduled", self.scheduled
+        print "running", self.running
+
+
+        while len(self.scheduled):
+            task = self.scheduled.pop()
+            
+            print "Running", task, "locally"
+            
+            task.execute(self.cache, self.regen)
+            
+            task.set_status("complete")
+            for t2 in task.allows():
+                t2.req_complete(task)
+                print "allows", t2
+                if t2.status() == "ready":
+                    print t2, "ready"
+                    self.schedule(t2)
+
+
+class MPIScheduler:
     def __init__(self, cache = True, regen=False):
+        from mpi4py import MPI
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.cache = cache
@@ -55,10 +100,6 @@ class Scheduler:
 
         while len(self.scheduled) or len(self.running):
             pe, uid, result = self.comm.recv(source=MPI.ANY_SOURCE, tag=AVAIL)
-            print
-            print
-            
-
             
             if uid:
                 done_task = self.tasks[uid]
@@ -82,10 +123,9 @@ class Scheduler:
                 task = self.scheduled.pop()
                 if task.local:
                     print "Running", task, "locally"
-                    if self.cache:
-                        task.run_cached(self.regen)
-                    else:
-                        task.run()
+                    
+                    task.execute(self.cache, self.regen)
+                    
                     task.set_status("complete")
                     for t2 in task.allows():
                         t2.req_complete(task)
@@ -115,8 +155,5 @@ class JobRunner:
             print "Running", task.desc(), "on", rank
             if task.EXIT:
                 return
-            if cache:
-                result = task.run_cached(regen)
-            else:
-                result = task.run()
+            result = task.execute(cache, regen)
             comm.send((rank, task.uid, result), dest=0, tag=AVAIL)
