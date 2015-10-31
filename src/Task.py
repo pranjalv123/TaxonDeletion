@@ -133,6 +133,8 @@ class Task(object): #should be a "new style class" for inheritance purposes
             print e
         self.result = self.run()
         self.write(filename)
+        for i in self.outputs():
+            assert(i[0] in self.result.keys())
         return self.result
 
     def __hash__(self):
