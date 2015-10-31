@@ -23,7 +23,7 @@ class WriteGeneTrees(Task.Task):
         self.cache = False
         self.local = True
     def inputs(self):
-        return [("genetrees", dendropy.Tree)]
+        return [("genetrees", dendropy.TreeList)]
     def outputs(self):
         return []
     def run(self):
@@ -38,7 +38,7 @@ class WritePhylip(Task.Task):
         self.cache = False
         self.local = True
     def inputs(self):
-        return [("genetrees", dendropy.Tree)]
+        return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
         return []
     def run(self):
