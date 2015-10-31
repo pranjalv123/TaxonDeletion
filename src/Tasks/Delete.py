@@ -41,7 +41,7 @@ class DeleteTaxaUniform(Task.Task):
         st = self.input_data["speciestree"]
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         st.migrate_taxon_namespace(dna[0].taxon_namespace)
-        deletion_list = np.random.choice(list(gt.taxon_namespace), size=ndelete, replace=False)
+        deletion_list = np.random.choice(list(gt.taxon_namespace), size=self.ndelete, replace=False)
         for g in gt:
             g.prune_taxa(deletion_list)
         for seq in dna:
@@ -63,7 +63,7 @@ class DeleteTaxaRandom(Task.Task):
         gt = self.input_data["genetrees"]
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         for seq, g in zip(dna, gt):
-            nd = min(ndelete + np.random.randn() * sigma,  len([1 for j in seq if len(seq[j])]))
+            nd = min(self.ndelete + np.random.randn() * sigma,  len([1 for j in seq if len(seq[j])]))
             deletion_list = np.random.choice(list(gt.taxon_namespace), size=nd, replace=False)
             for g in gt:
                 g.prune_taxa(deletion_list)
