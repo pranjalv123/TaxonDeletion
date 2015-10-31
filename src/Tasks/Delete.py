@@ -47,7 +47,7 @@ class DeleteTaxaUniform(Task.Task):
         for seq in dna:
             seq.discard_sequences(deletion_list)
         st.prune_taxa(deletion_list)
-        self.result = {"alignments":dna, "genetrees":gt, "speciestrees":st}
+        self.result = {"alignments":dna, "genetrees":gt, "speciestree":st}
         return self.result
         
 class DeleteTaxaRandom(Task.Task):
