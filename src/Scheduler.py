@@ -70,10 +70,11 @@ class SerialScheduler:
                     print t2, "ready"
                     self.schedule(t2)
 
-
+if '--serial' not in sys.argv:
+    from mpi4py import MPI                    
+                    
 class MPIScheduler:
     def __init__(self, cache = True, regen=False):
-        from mpi4py import MPI
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.cache = cache
