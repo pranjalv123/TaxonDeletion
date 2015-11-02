@@ -27,6 +27,7 @@ import subprocess
 import StringIO
 import uuid
 import dendropy
+import sys
 
 class DeleteTaxaUniform(Task.Task):
     def setup(self, ndelete, *args, **kwargs):
@@ -59,14 +60,23 @@ class DeleteTaxaRandom(Task.Task):
     def outputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,))]
     def run(self):
+        if '--debug' in sys.argv:
+            debug = True
         dna = self.input_data["alignments"]
         gt = self.input_data["genetrees"]
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         for seq, g in zip(dna, gt):
+            if debug:
+                print g
             nd = min(self.ndelete + np.random.randn() * self.sigma,  len([1 for j in seq if len(seq[j])]))
+            print nd
             taxon_list = [i.taxon for i in g.leaf_nodes()]
+            print taxon_list
             deletion_list = np.random.choice(taxon_list, size=nd, replace=False)
+            print deletion_list
             g.prune_taxa(deletion_list)
+            print g
+            print
             seq.discard_sequences(deletion_list)
         self.result = {"alignments":dna, "genetrees":gt}
         return self.result
