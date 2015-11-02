@@ -64,12 +64,10 @@ class DeleteTaxaRandom(Task.Task):
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         for seq, g in zip(dna, gt):
             nd = min(self.ndelete + np.random.randn() * self.sigma,  len([1 for j in seq if len(seq[j])]))
-            taxon_list = [i.taxon for i in gt.leaf_nodes()]
+            taxon_list = [i.taxon for i in g.leaf_nodes()]
             deletion_list = np.random.choice(taxon_list, size=nd, replace=False)
-            for g in gt:
-                g.prune_taxa(deletion_list)
-            for seq in dna:
-                seq.discard_sequences(deletion_list)
+            g.prune_taxa(deletion_list)
+            seq.discard_sequences(deletion_list)
         self.result = {"alignments":dna, "genetrees":gt}
         return self.result
 
