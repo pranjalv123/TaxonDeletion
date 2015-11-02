@@ -33,6 +33,8 @@ def Scheduler(cache=True, regen=False):
         regen=True    
     if '--serial' in sys.argv:
         return SerialScheduler(cache, regen)
+    if '--distributed' in sys.argv:
+        return DistributedSerialScheduler(cache, regen)
     return MPIScheduler()
 
 AVAIL=1
@@ -45,11 +47,21 @@ class SerialScheduler:
         self.scheduled = []
         self.tasks = {}
         self.running = set()
+        self.pipelines = []
     def schedule(self, task):
         task.set_status("scheduled")
         self.scheduled.append(task)
         self.tasks[task.uid] = task
+        
+    def add(self, plfun):
+        self.pipelines.append(plfun(self))
+
     def run(self):
+        for p in self.pipelines:
+            p.ready()
+            self.run_pl()
+        
+    def run_pl(self):
         print "Running scheduler"
         print "scheduled", self.scheduled
         print "running", self.running
@@ -70,17 +82,35 @@ class SerialScheduler:
                     print t2, "ready"
                     self.schedule(t2)
 
+class DistributedSerialScheduler:
+    def __init__(self, cache = True, regen = False):
+        self.sched = SerialScheduler(cache, regen)
+        self.index = 0
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+        self.pipelines = []
+    def add(self, plfun):
+        if self.index == self.rank:
+            self.pipelines.append(plfun(self.sched))
+        self.index += 1
+        self.index %= self.size
+    def run(self):
+        for p in self.pipelines:
+            p.ready()
+            self.sched.run_pl()
+                    
 if '--serial' not in sys.argv:
     from mpi4py import MPI                    
                     
 class MPIScheduler:
-    def __init__(self, cache = True, regen=False):
+    def __init__(self, cache = True, regen=False, hostrank=0):
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.cache = cache
         self.regen = regen
         
-        if self.rank > 0:
+        if self.rank != hostrank:
             JobRunner(self.comm, self.rank, self.cache, self.regen)
             exit()
         self.unready = []
