@@ -96,8 +96,8 @@ class LimitSeqLength(Task.Task):
     def run(self):
         dna = self.input_data["alignments"]
         for seq in dna:
-            for s in seq:
-                del s[self.maxlen:]
+            for tax in seq:
+                del seq[tax][self.maxlen:]
         self.result = {"alignments":dna}
         return self.result
     
