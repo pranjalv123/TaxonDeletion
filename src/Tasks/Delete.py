@@ -69,15 +69,19 @@ class DeleteTaxaRandom(Task.Task):
         for seq, g in zip(dna, gt):
             if debug:
                 print g
-            nd = min(self.ndelete + np.random.randn() * self.sigma,  len([1 for j in seq if len(seq[j])]))
-            print nd
             taxon_list = [i.taxon for i in g.leaf_nodes()]
-            print taxon_list
+                            
+            nd = min(self.ndelete + np.random.randn() * self.sigma,  len(taxon_list) - 4)
+            if debug:
+                print nd
+                print taxon_list
             deletion_list = np.random.choice(taxon_list, size=nd, replace=False)
-            print deletion_list
+            if debug:
+                print deletion_list
             g.prune_taxa(deletion_list)
-            print g
-            print
+            if debug:
+                print g
+                print
             seq.discard_sequences(deletion_list)
         self.result = {"alignments":dna, "genetrees":gt}
         return self.result
