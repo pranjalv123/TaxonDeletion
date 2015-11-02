@@ -139,6 +139,8 @@ class Task(object): #should be a "new style class" for inheritance purposes
             print e
         self.result = self.run()
         self.write(filename)
+        if debug:
+            print "Wrote", self, "to", filename
         for i in self.outputs():
             assert(i[0] in self.result.keys())
         print "Running", self, "took", time.clock() - t0, "seconds"
