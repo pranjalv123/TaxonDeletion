@@ -95,9 +95,9 @@ class LimitSeqLength(Task.Task):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def run(self):
         dna = self.input_data["alignments"]
-        for seq, g in zip(dna, gt):
-            for seq in dna:
-                del seq[i][maxlen:]
+        for seq in dna:
+            for s in seq:
+                del s[maxlen:]
         self.result = {"alignments":dna}
         return self.result
     
