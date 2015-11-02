@@ -60,6 +60,7 @@ class DeleteTaxaRandom(Task.Task):
     def outputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,))]
     def run(self):
+        debug = False
         if '--debug' in sys.argv:
             debug = True
         dna = self.input_data["alignments"]
