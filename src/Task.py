@@ -26,6 +26,7 @@ import numpy as np
 import subprocess
 import StringIO
 import uuid
+import time
 
 class Task(object): #should be a "new style class" for inheritance purposes
     def __init__(self, *args, **kwargs):
@@ -116,17 +117,22 @@ class Task(object): #should be a "new style class" for inheritance purposes
         return ""
     
     def execute(self, cache=True, regen=False):
+        t0 = time.clock()
         if not cache or not self.cache:
             self.result = self.run()
+            print "Running", self, "took", time.clock() - t0, "seconds"
             return self.result
         filename = self.storefile()
         if not filename:
             print "Filename", filename, "not found", self.cache
-            return self.run()
+            self.result =  self.run()
+            print "Running", self, "took", time.clock() - t0, "seconds"
+            return self.result
         try:
             if not regen:
                 self.result = self.read(filename)
                 if self.result:
+                    print "Reading cache of", self, "took", time.clock() - t0, "seconds"
                     return self.result
         except Exception as e:
             print "Couldn't read file!", filename
@@ -135,6 +141,7 @@ class Task(object): #should be a "new style class" for inheritance purposes
         self.write(filename)
         for i in self.outputs():
             assert(i[0] in self.result.keys())
+        print "Running", self, "took", time.clock() - t0, "seconds"
         return self.result
 
     def __hash__(self):
