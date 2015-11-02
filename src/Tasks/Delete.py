@@ -64,7 +64,8 @@ class DeleteTaxaRandom(Task.Task):
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         for seq, g in zip(dna, gt):
             nd = min(self.ndelete + np.random.randn() * self.sigma,  len([1 for j in seq if len(seq[j])]))
-            deletion_list = np.random.choice(list(gt.taxon_namespace), size=nd, replace=False)
+            taxon_list = [i.taxon for i in gt.leaf_nodes()]
+            deletion_list = np.random.choice(taxon_list, size=nd, replace=False)
             for g in gt:
                 g.prune_taxa(deletion_list)
             for seq in dna:
