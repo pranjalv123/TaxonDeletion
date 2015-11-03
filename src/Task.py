@@ -161,6 +161,8 @@ class Task(object): #should be a "new style class" for inheritance purposes
 
     
     #may be reimplemented by children
+    def __str__(self):
+        return '(' + self.__class__.__name__ + '; ' + self.storefile() + '; ' + self.uid + ')'
     def desc(self):
         return self.__repr__()
     def write(self, fname):
