@@ -44,6 +44,6 @@ class WritePhylip(Task.Task):
     def run(self):
         stream = open(self.path, 'w')
         for al in self.input_data["alignments"]:
-            al.write_to_stream(stream, schema="phylip")
+            al.write_to_stream(stream, schema="phylip", suppress_missing_taxa=True)
         self.result = {}
         return self.result
