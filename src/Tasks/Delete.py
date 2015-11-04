@@ -37,9 +37,9 @@ class DeleteTaxaUniform(Task.Task):
     def outputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
     def run(self):
-        dna = self.input_data["alignments"]
-        gt = self.input_data["genetrees"]
-        st = self.input_data["speciestree"]
+        dna = self.input_data["alignments"].clone()
+        gt = self.input_data["genetrees"].clone()
+        st = self.input_data["speciestree"].clone()
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         st.migrate_taxon_namespace(dna[0].taxon_namespace)
         deletion_list = np.random.choice(list(gt.taxon_namespace), size=self.ndelete, replace=False)
@@ -63,8 +63,8 @@ class DeleteTaxaRandom(Task.Task):
         debug = False
         if '--debug' in sys.argv:
             debug = True
-        dna = self.input_data["alignments"]
-        gt = self.input_data["genetrees"]
+        dna = self.input_data["alignments"].clone()
+        gt = self.input_data["genetrees"].clone()
         gt.migrate_taxon_namespace(dna[0].taxon_namespace)
         for seq, g in zip(dna, gt):
             if debug:
@@ -94,7 +94,7 @@ class LimitSeqLength(Task.Task):
     def outputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def run(self):
-        dna = self.input_data["alignments"]
+        dna = self.input_data["alignments"].clone()
         for seq in dna:
             for tax in seq:
                 del seq[tax][self.maxlen:]
