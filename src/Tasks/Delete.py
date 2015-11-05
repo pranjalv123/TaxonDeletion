@@ -36,6 +36,8 @@ class DeleteTaxaUniform(Task.Task):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
     def outputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
+    def desc(self):
+        return str(self.ndelete)
     def run(self):
         dna = [i.clone() for i in self.input_data["alignments"]]
         gt = self.input_data["genetrees"].clone()
@@ -50,11 +52,13 @@ class DeleteTaxaUniform(Task.Task):
         st.prune_taxa(deletion_list)
         self.result = {"alignments":dna, "genetrees":gt, "speciestree":st}
         return self.result
-        
+    
 class DeleteTaxaRandom(Task.Task):
     def setup(self, ndelete, sigma=0, *args, **kwargs):
         self.ndelete = ndelete
         self.sigma = sigma
+    def desc(self):
+        return str(self.ndelete) + ' +/- ' + str(self.sigma)
     def inputs(self):
         return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -93,6 +97,8 @@ class LimitSeqLength(Task.Task):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
+    def desc(self):
+        return str(self.maxlen)
     def run(self):
         dna = [i.clone() for i in self.input_data["alignments"]]
         for seq in dna:

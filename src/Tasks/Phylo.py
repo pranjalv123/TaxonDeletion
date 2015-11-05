@@ -33,6 +33,8 @@ import dendropy
 class CompareTrees(Task.Task):
     def setup(self, *args, **kwargs):
         self.local=True
+    def desc(self):
+        return ""
     def inputs(self):
         return[("truespeciestree", dendropy.Tree), ("estimatedspeciestree", dendropy.Tree)]
     def outputs(self):

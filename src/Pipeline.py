@@ -45,10 +45,18 @@ class Pipeline:
         return True
     def prune(self):
         pass
+    def todot(self, fname):
+        f = open(fname, 'w')
+        f.write('digraph pipeline {\n')
+        for task in self.tasks:
+            f.write('n'+task.uid.hex + '[label="' + str(task) + '"];\n')
+            for dep in task.dependencies:
+                f.write('n'+dep.uid.hex + '->' + 'n'+task.uid.hex +';\n')
+        f.write('}\n')
+        
     def ready(self, cache=True, regen=False):
-        if '--verify' in sys.argv:
-            self.verify()
-            return
+        self.verify()
+        self.todot('pipeline')
         for task in self.tasks:
             if task.status() == "ready":
                 self.scheduler.schedule(task)

@@ -31,6 +31,8 @@ class CastName(Task.Task):
         self.tpe = tpe
         self.inname = inname
         self.outname = outname
+    def desc(self):
+        return self.inname + ' to ' + self.outname
     def inputs(self):
         return [(self.inname, self.tpe)]
     def outputs(self):
@@ -42,6 +44,8 @@ class CastName(Task.Task):
 class Exit(Task.Task):
     def setup(self, *args, **kwargs):
         self.EXIT = True
+    def desc(self):
+        return ""
     def inputs(self):
         return []
     def outputs(self):

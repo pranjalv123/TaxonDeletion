@@ -33,6 +33,9 @@ class ReadSpeciesTree(Task.Task):
         self.path = location
         self.cache = False
         self.local = True
+    def desc(self):
+        return self.path
+    
     def inputs(self):
         return []
     def outputs(self):
@@ -47,6 +50,8 @@ class ReadGeneTrees(Task.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
+    def desc(self):
+        return self.path
     def inputs(self):
         return []
     def outputs(self):
@@ -62,6 +67,8 @@ class ReadPhylip(Task.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
+    def desc(self):
+        return self.path
     def inputs(self):
         return []
     def outputs(self):

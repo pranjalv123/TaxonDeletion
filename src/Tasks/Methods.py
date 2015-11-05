@@ -28,12 +28,17 @@ import StringIO
 import uuid
 import ASTRID
 import dendropy
+import tempfile
 
 class RunFastTree(Task.Task):
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
         return [("genetrees", dendropy.TreeList)]
+    
+    def desc(self):
+        return ""
+    
     def run(self):
         self.seqs = self.input_data["alignments"]
         sio = StringIO.StringIO()
@@ -46,11 +51,16 @@ class RunFastTree(Task.Task):
         self.result = {"genetrees":genetrees}
         return self.result
 
+
+    
 class RunASTRID(Task.Task):
     def setup(self, distmethod=None, *args, **kwargs):
         self.distmethod = distmethod
         if self.distmethod==None:
             self.distmethod="auto"
+    def desc(self):
+        return self.distmethod
+    
     def inputs(self):
         return [("genetrees", dendropy.TreeList)]
     def outputs(self):
@@ -61,4 +71,31 @@ class RunASTRID(Task.Task):
         self.result = {"estimatedspeciestree": a.tree}
         print a.tree
         print type(a.tree)
+        return self.result
+
+class RunASTRAL(Task.Task):
+    def setup(self, *args, **kwargs):
+        pass
+    def desc(self):
+        return ""
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("estimatedspeciestree", dendropy.Tree)]
+    def run(self):
+
+        print "RUNNING ASTRAL"
+        
+        f = tempfile.NamedTemporaryFile()
+
+        self.input_data["genetrees"].write(path=f.name, schema='newick')
+        
+        proc = subprocess.Popen(['ASTRAL', '-i', f.name], stdout=subprocess.PIPE)
+
+        
+        streestr, err = proc.communicate()
+        print err
+        print streestr
+        stree = dendropy.Tree.get_from_string(streestr)
+        self.result = {"estimatedspeciestree": stree}
         return self.result

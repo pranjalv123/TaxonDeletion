@@ -6,6 +6,8 @@ class WriteSpeciesTree(Task.Task):
         self.path = location
         self.cache = False
         self.local = True
+    def desc(self):
+        return self.path
     def inputs(self):
         return [("speciestree", dendropy.Tree)]
     def outputs(self):
@@ -22,6 +24,8 @@ class WriteGeneTrees(Task.Task):
         self.path = location
         self.cache = False
         self.local = True
+    def desc(self):
+        return self.path
     def inputs(self):
         return [("genetrees", dendropy.TreeList)]
     def outputs(self):
@@ -37,6 +41,8 @@ class WritePhylip(Task.Task):
         self.path = location
         self.cache = False
         self.local = True
+    def desc(self):
+        return self.path
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):

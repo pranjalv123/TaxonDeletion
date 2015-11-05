@@ -162,9 +162,11 @@ class Task(object): #should be a "new style class" for inheritance purposes
     
     #may be reimplemented by children
     def __str__(self):
-        return '(' + self.__class__.__name__ + '; ' + str(self.storefile()) + '; ' + str(self.uid) + ')'
+        
+        return '(' + self.__class__.__name__ + '; ' + str(self.desc()) + ')'
+
     def desc(self):
-        return self.__repr__()
+        return str(self.uid)
     def write(self, fname):
         f = open(fname, 'w')
         cPickle.dump(self.result, f, protocol=2)
