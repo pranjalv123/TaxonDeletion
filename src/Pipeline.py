@@ -23,11 +23,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Scheduler
 import cPickle
 import sys
+from collections import defaultdict
+import subprocess
+
+colormap = defaultdict(lambda : "black")
+colormap['waiting']='red'
+colormap['ready']='yellow'
+colormap['running']='green'
+colormap['complete']='blue'
+
 
 class Pipeline:
-    def __init__(self, scheduler):
+    def __init__(self, scheduler, desc):
         self.tasks = []
         self.scheduler = scheduler
+        self.desc = desc
     def add_task(self, task):
         self.tasks.append(task)
         task.pipeline = self
@@ -45,18 +55,19 @@ class Pipeline:
         return True
     def prune(self):
         pass
-    def todot(self, fname):
+    def todot(self):
+        fname = self.desc + '.dot'
         f = open(fname, 'w')
         f.write('digraph pipeline {\n')
         for task in self.tasks:
-            f.write('n'+task.uid.hex + '[label="' + str(task) + '"];\n')
+            f.write('n'+task.uid.hex + '[label="' + str(task) + '",color="' + colormap[task.status()] + '"];\n')
             for dep in task.dependencies:
                 f.write('n'+dep.uid.hex + '->' + 'n'+task.uid.hex +';\n')
         f.write('}\n')
-        
+        subprocess.Popen(['dot', fname, '-Tpng', '-O'])
     def ready(self, cache=True, regen=False):
         self.verify()
-        self.todot('pipeline')
+        self.todot()
         for task in self.tasks:
-            if task.status() == "ready":
+            if task.is_result():
                 self.scheduler.schedule(task)

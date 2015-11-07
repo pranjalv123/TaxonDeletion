@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Task
 import Tasks
 import sys
-
+import collections
 
 def Scheduler(cache=True, regen=False):
     if '--nocache' in sys.argv:
@@ -44,13 +44,17 @@ class SerialScheduler:
         self.cache = cache
         self.regen = regen
         self.unready = []
-        self.scheduled = []
+        self.queue = collections.deque()
         self.tasks = {}
         self.running = set()
         self.pipelines = []
+        self.scheduled = set()
     def schedule(self, task):
-        task.set_status("scheduled")
-        self.scheduled.append(task)
+        if task.uid in self.scheduled:
+            return
+        #task.set_status("scheduled")
+        self.scheduled.add(task.uid)
+        self.queue.append(task)
         self.tasks[task.uid] = task
         
     def add(self, plfun):
@@ -58,6 +62,7 @@ class SerialScheduler:
 
     def run(self):
         for p in self.pipelines:
+            self.current_pl = p
             p.ready()
             self.run_pl()
         
@@ -65,22 +70,27 @@ class SerialScheduler:
         print "Running scheduler"
         print "scheduled", self.scheduled
         print "running", self.running
+        
 
+        while len(self.queue):
+            task = self.queue.popleft()
 
-        while len(self.scheduled):
-            task = self.scheduled.pop()
             
-            print "Running", task, "locally"
+
+            try:
+                task.execute(self.cache, self.regen)
             
-            task.execute(self.cache, self.regen)
-            
-            task.set_status("complete")
-            for t2 in task.allows():
-                t2.req_complete(task)
-                print "allows", t2
-                if t2.status() == "ready":
-                    print t2, "ready"
-                    self.schedule(t2)
+                task.set_status("complete")
+                for t2 in task.allows():
+                    t2.req_complete(task)
+                    print "allows", t2
+                    if t2.status() == "ready":
+                        print t2, "ready"
+                        self.schedule(t2)
+            except Task.DependenciesNotCompleteException:
+                for dep in task.dependencies:
+                    self.schedule(dep)
+                self.queue.append(task)
 
 class DistributedSerialScheduler:
     def __init__(self, cache = True, regen = False):
@@ -105,6 +115,8 @@ if '--serial' not in sys.argv:
                     
 class MPIScheduler:
     def __init__(self, cache = True, regen=False, hostrank=0):
+        print "ERROR: MPIScheduler is currently not working; try DistributedSerialScheduler"
+        exit()
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.cache = cache

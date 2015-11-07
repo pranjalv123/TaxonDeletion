@@ -28,17 +28,24 @@ import StringIO
 import uuid
 import time
 
-class Task(object): #should be a "new style class" for inheritance purposes
+class DependenciesNotCompleteException(Exception):
+    pass
+
+class Task(object): 
     def __init__(self, *args, **kwargs):
         cachefile=None
         local=False
         cache=True
+        is_result=False
         if 'cachefile' in kwargs:
             cachefile = kwargs['cachefile']
         if 'local' in kwargs:
             local = kwargs['local']
         if 'cache' in kwargs:
             local = kwargs['cache']
+        if 'is_result' in kwargs:
+            is_result = kwargs['is_result']
+
         self.dependencies = set()
         self.depended = set()
         self.input_data = {}
@@ -51,10 +58,16 @@ class Task(object): #should be a "new style class" for inheritance purposes
         self.local = local
         self.cache = cache
         self.cachefile = cachefile
-
+        self._is_result = is_result
+        
         self.setup(*args, **kwargs)
 
     #should be implemented here
+
+    def is_result(self):
+        if len(self.outputs()) == 0:
+            return True
+        return self._is_result
     
     def require(self, otherTask): #don't run until otherTask has run
         self.dependencies.add(otherTask)
@@ -117,13 +130,20 @@ class Task(object): #should be a "new style class" for inheritance purposes
         return ""
     
     def execute(self, cache=True, regen=False):
+        if self.status() == "complete":
+            return self.result
         t0 = time.clock()
         if not cache or not self.cache:
+            if not self.status() == "ready":
+                raise DependenciesNotCompleteException
+                
             self.result = self.run()
             print "Running", self, "took", time.clock() - t0, "seconds"
             return self.result
         filename = self.storefile()
         if not filename:
+            if not self.status() == "ready":
+                raise DependenciesNotCompleteException
             print "Filename", filename, "not found", self.cache
             self.result =  self.run()
             print "Running", self, "took", time.clock() - t0, "seconds"
@@ -137,6 +157,8 @@ class Task(object): #should be a "new style class" for inheritance purposes
         except Exception as e:
             print "Couldn't read file!", filename
             print e
+        if not self.status() == "ready":
+            raise DependenciesNotCompleteException
         self.result = self.run()
         self.write(filename)
 

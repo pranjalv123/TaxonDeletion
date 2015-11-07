@@ -96,6 +96,6 @@ class RunASTRAL(Task.Task):
         streestr, err = proc.communicate()
         print err
         print streestr
-        stree = dendropy.Tree.get_from_string(streestr)
+        stree = dendropy.Tree.get_from_string(streestr, 'newick')
         self.result = {"estimatedspeciestree": stree}
         return self.result

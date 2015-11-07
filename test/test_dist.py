@@ -7,7 +7,7 @@ sched = Scheduler.Scheduler()
 
 def gen_pipeline(sched, i):
 
-    pl = Pipeline.Pipeline(sched)
+    pl = Pipeline.Pipeline(sched, "/tmp/test-pipeline")
     
     readgenes = pl.add_task(ReadPhylip('../test/data/some-genes-'+str(i) +'.phylip'))
     ft = pl.add_task(RunFastTree(cachefile='/tmp/fasttree-trees' + str(i))).require(readgenes)
