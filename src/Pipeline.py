@@ -64,7 +64,8 @@ class Pipeline:
             for dep in task.dependencies:
                 f.write('n'+dep.uid.hex + '->' + 'n'+task.uid.hex +';\n')
         f.write('}\n')
-        subprocess.Popen(['dot', fname, '-Tpng', '-O'])
+        if '--nodot' not in sys.argv:
+            subprocess.Popen(['dot', fname, '-Tpng', '-O'])
     def ready(self, cache=True, regen=False):
         self.verify()
         self.todot()
