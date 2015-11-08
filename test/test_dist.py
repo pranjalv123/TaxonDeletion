@@ -19,7 +19,7 @@ def gen_pipeline(sched, i):
     writest = pl.add_task(WriteSpeciesTree('/tmp/this-is-astridtree'+str(i))).require(pl.add_task(CastName("estimatedspeciestree", "speciestree", dendropy.Tree)).require(astrid))
     writest_astral = pl.add_task(WriteSpeciesTree('/tmp/this-is-astraltree')).require(pl.add_task(CastName("estimatedspeciestree", "speciestree", dendropy.Tree)).require(astral))
 
-    compare = pl.add_task(CompareTrees().require(astrid).require(truest))
+    compare = pl.add_task(CompareTrees('/tmp/output', 'astral').require(astrid).require(truest))
     compare_astral = pl.add_task(CompareTrees().require(astral).require(truest))
 
     return pl

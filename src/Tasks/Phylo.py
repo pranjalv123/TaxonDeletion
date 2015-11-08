@@ -31,8 +31,11 @@ import uuid
 import dendropy
 
 class CompareTrees(Task.Task):
-    def setup(self, *args, **kwargs):
+    def setup(self, outputfile=None, tag="", *args, **kwargs):
         self.local=True
+        self.outputfile = outputfile
+        self.tag = tag
+        self._is_result=True
     def desc(self):
         return ""
     def inputs(self):
@@ -46,5 +49,7 @@ class CompareTrees(Task.Task):
         truetree.migrate_taxon_namespace(tn)
         diff = dendropy.calculate.treecompare.false_positives_and_negatives(truetree, estimatedtree)[0]
         self.result ={"rfdistance":diff}
-        print "RF distance is", diff
+        if self.outputfile:
+            open(self.outputfile, 'w').write(self.tag + ',' + str(diff))
+            
         return self.result
