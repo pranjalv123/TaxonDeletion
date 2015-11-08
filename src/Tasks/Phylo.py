@@ -50,6 +50,6 @@ class CompareTrees(Task.Task):
         diff = dendropy.calculate.treecompare.false_positives_and_negatives(truetree, estimatedtree)[0]
         self.result ={"rfdistance":diff}
         if self.outputfile:
-            open(self.outputfile, 'w').write(self.tag + ',' + str(diff))
+            open(self.outputfile, 'a').write(self.tag + ',' + str(diff) + '\n')
             
         return self.result
