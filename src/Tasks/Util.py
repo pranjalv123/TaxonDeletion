@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+import dendropy
 import Task
 
 class CastName(Task.Task):
