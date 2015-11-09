@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Task
 import Tasks
 import sys
+import gc
 import collections
 
 def Scheduler(cache=True, regen=False):
@@ -70,12 +71,13 @@ class SerialScheduler:
         print "Running scheduler"
         print "scheduled", self.scheduled
         print "running", self.running
-        
+        if '--memdebug' in sys.argv:
+            gc.set_debug(gc.DEBUG_STATS | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
 
         while len(self.queue):
             task = self.queue.popleft()
 
-            
+            gc.collect()
 
             try:
                 task.execute(self.cache, self.regen)

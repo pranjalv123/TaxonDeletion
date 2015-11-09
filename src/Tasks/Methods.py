@@ -71,6 +71,7 @@ class RunASTRID(Task.Task):
         self.result = {"estimatedspeciestree": a.tree}
         print a.tree
         print type(a.tree)
+        del(a)
         return self.result
 
 class RunASTRAL(Task.Task):
@@ -100,6 +101,8 @@ class RunASTRAL(Task.Task):
         streestr, err = proc.communicate()
         print err
         print streestr
+
+        del(proc)
         stree = dendropy.Tree.get_from_string(streestr, 'newick')
         self.result = {"estimatedspeciestree": stree}
         return self.result

@@ -40,7 +40,6 @@ class Pipeline:
         self.desc = desc
     def add_task(self, task):
         self.tasks.append(task)
-        task.pipeline = self
         return task
     def verify(self):
         for t in self.tasks:
