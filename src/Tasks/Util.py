@@ -52,7 +52,7 @@ class Head(Task.Task):
     def outputs(self):
         return [('genetrees', dendropy.TreeList)]
     def run(self):
-        gt = self.inputdata["genetrees"]
+        gt = self.input_data["genetrees"]
         self.result = {'genetrees': gt[:min(self.n, len(gt))]}
     
     
