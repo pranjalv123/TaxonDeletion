@@ -88,7 +88,11 @@ class RunASTRAL(Task.Task):
         
         f = tempfile.NamedTemporaryFile()
 
-        self.input_data["genetrees"].write(path=f.name, schema='newick')
+        gt = self.input_data["genetrees"]
+
+        gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
+        
+        gt.write(path=f.name, schema='newick')
         
         proc = subprocess.Popen(['ASTRAL', '-i', f.name], stdout=subprocess.PIPE)
 
