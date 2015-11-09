@@ -54,6 +54,7 @@ class Head(Task.Task):
     def run(self):
         gt = self.input_data["genetrees"]
         self.result = {'genetrees': gt[:min(self.n, len(gt))]}
+        return self.result
     
     
     
