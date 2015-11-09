@@ -40,6 +40,21 @@ class CastName(Task.Task):
     def run(self):
         self.result =  {self.outname : self.input_data[self.inname]}
         return self.result        
+
+class Head(Task.Task):
+    def setup(self, n, *args, **kwargs):
+        self.n = n
+    def desc(self):
+        return str(self.n)
+    def inputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def outputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def run(self):
+        gt = self.inputdata["genetrees"]
+        self.result = {'genetrees': gt[:min(self.n, len(gt))]}
+    
+    
     
 class Exit(Task.Task):
     def setup(self, *args, **kwargs):
