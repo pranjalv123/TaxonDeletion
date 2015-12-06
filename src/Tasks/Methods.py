@@ -160,7 +160,7 @@ class RunWastral(xylem.Task):
 
         o = tempfile.NamedTemporaryFile()
         
-        args = ['wASTRAL', '-c', self.criterion, '-a', '~/.local/lib/astral.4.7.8.jar',  '-o', o.name]
+        args = ['wASTRAL', '-c', self.criterion, '-a', '~/.local/lib/astral.4.7.8.jar',  '-o', o.name,'-v', '--debug']
         if self.maximize:
             args += ['--maximize']
         else:
