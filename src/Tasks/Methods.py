@@ -228,7 +228,7 @@ class RunSVDQuartets(xylem.Task):
         import subprocess
 
         pp = os.path.dirname(__file__) + '/parse_paup_svdtree.sh'
-    
+        print " ".join(["bash", pp, f.name])
         out, err = subprocess.Popen(["bash", pp, f.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
         tree = dendropy.Tree.get_from_path(f.name + '.svdtree','newick')
