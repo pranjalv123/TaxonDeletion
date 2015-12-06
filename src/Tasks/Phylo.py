@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-import Task
+import xylem.Task
 import cPickle
 import numpy as np
 import subprocess
@@ -30,7 +30,7 @@ import StringIO
 import uuid
 import dendropy
 
-class CompareTrees(Task.Task):
+class CompareTrees(xylem.Task):
     def setup(self, outputfile=None, tag="", *args, **kwargs):
         self.local=True
         self.outputfile = outputfile
@@ -53,3 +53,5 @@ class CompareTrees(Task.Task):
             open(self.outputfile, 'a').write(self.tag + ',' + str(diff) + '\n')
             
         return self.result
+
+

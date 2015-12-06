@@ -33,18 +33,10 @@ class DependenciesNotCompleteException(Exception):
 
 class Task(object): 
     def __init__(self, *args, **kwargs):
-        cachefile=None
-        local=False
-        cache=True
-        is_result=False
-        if 'cachefile' in kwargs:
-            cachefile = kwargs['cachefile']
-        if 'local' in kwargs:
-            local = kwargs['local']
-        if 'cache' in kwargs:
-            local = kwargs['cache']
-        if 'is_result' in kwargs:
-            is_result = kwargs['is_result']
+        cachefile=kwargs.pop('cachefile', None)
+        local=kwargs.pop('local', False)
+        cache=kwargs.pop('cache', True)
+        is_result=kwargs.pop('is_result', False)
 
         self.dependencies = set()
         self.depended = set()
@@ -59,8 +51,10 @@ class Task(object):
         self.cache = cache
         self.cachefile = cachefile
         self._is_result = is_result
+
         
         self.setup(*args, **kwargs)
+
 
     #should be implemented here
 
@@ -68,10 +62,12 @@ class Task(object):
         if len(self.outputs()) == 0:
             return True
         return self._is_result
-    
-    def require(self, otherTask): #don't run until otherTask has run
-        self.dependencies.add(otherTask)
-        otherTask.depended.add(self)
+
+    #don't run until otherTask has run
+    def require(self, *tasks):
+        for otherTask in tasks:
+            self.dependencies.add(otherTask)
+            otherTask.depended.add(self)
         return self
     
     def depends(self): #return a list of tasks this depends on
@@ -98,7 +94,7 @@ class Task(object):
                             self.input_data[name].append(otherTask.get_results()[name])
             else:
                 if item in task_outputs:
-                    self.input_data[name] = tpe(otherTask.get_results()[name])
+                    self.input_data[name] = tpe( otherTask.get_results()[name])
         
         for i in self.dependencies:
             if i.status() != "complete":

@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import Task
+import xylem.Task
 import cPickle
 import numpy as np
 import subprocess
@@ -28,7 +28,7 @@ import StringIO
 import uuid
 import dendropy
 
-class ReadSpeciesTree(Task.Task):
+class ReadSpeciesTree(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
@@ -46,9 +46,10 @@ class ReadSpeciesTree(Task.Task):
         self.result = {"speciestree": tree}
         return self.result
     
-class ReadGeneTrees(Task.Task):
-    def setup(self, location, *args, **kwargs):
+class ReadGeneTrees(xylem.Task):
+    def setup(self, location, limit=-1):
         self.path = location
+        self.limit = limit
         self.cache = False
     def desc(self):
         return self.path
@@ -58,14 +59,18 @@ class ReadGeneTrees(Task.Task):
         return [("genetrees", dendropy.TreeList)]
     def run(self):
         trees = dendropy.TreeList.get_from_path(self.path, "newick")
-        print "read", len(trees), "gene trees with", len(trees.taxon_namespace), "taxa"
-        self.result= {"genetrees": trees}
+        print "read", len(trees), "gene trees with", len(trees.taxon_namespace), "taxa from", self.path
+        if self.limit > 0:
+            self.result= {"genetrees": trees[:self.limit]}
+        else:
+            self.result= {"genetrees": trees}
         return self.result
 
 
-class ReadPhylip(Task.Task):
-    def setup(self, location, *args, **kwargs):
+class ReadPhylip(xylem.Task):
+    def setup(self, location, limit=-1):
         self.path = location
+        self.limit = limit
         self.cache = False
     def desc(self):
         return self.path
@@ -78,7 +83,9 @@ class ReadPhylip(Task.Task):
         lines = [i for i in open(self.path).readlines() if i.strip()]
         ind = 0
         matrices = []
-        while ind < len(lines):
+        if self.limit == -1:
+            self.limit = len(lines)
+        while ind < len(lines) and len(matrices) < self.limit:
             # parse first line
             n = int(lines[0].split()[0])
             # read first n lines
@@ -86,6 +93,7 @@ class ReadPhylip(Task.Task):
             ind += n + 1
             # if len(matrices) % 10 == 0:
             #     print len(matrices), "sequences read"
-        print "read", len(matrices), "sequences with", len(taxon_namespace), "taxa"
+        print "read", len(matrices), "sequences with", len(taxon_namespace), "taxa from", self.path
         self.result = {"alignments":matrices}
         return self.result
+

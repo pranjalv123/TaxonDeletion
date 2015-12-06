@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import Task
+import xylem.Task
 import cPickle
 import numpy as np
 import subprocess
@@ -29,8 +29,9 @@ import uuid
 import ASTRID
 import dendropy
 import tempfile
+import os
 
-class RunFastTree(Task.Task):
+class RunFastTree(xylem.Task):
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -50,10 +51,8 @@ class RunFastTree(Task.Task):
         genetrees = dendropy.TreeList.get_from_string(trees, 'newick')
         self.result = {"genetrees":genetrees}
         return self.result
-
-
     
-class RunASTRID(Task.Task):
+class RunASTRID(xylem.Task):
     def setup(self, distmethod=None, *args, **kwargs):
         self.distmethod = distmethod
         if self.distmethod==None:
@@ -74,7 +73,7 @@ class RunASTRID(Task.Task):
         del(a)
         return self.result
 
-class RunASTRAL(Task.Task):
+class RunASTRAL(xylem.Task):
     def setup(self, *args, **kwargs):
         pass
     def desc(self):
@@ -84,25 +83,158 @@ class RunASTRAL(Task.Task):
     def outputs(self):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
-
         print "RUNNING ASTRAL"
-        
         f = tempfile.NamedTemporaryFile()
-
         gt = self.input_data["genetrees"]
-
         gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
-        
         gt.write(path=f.name, schema='newick')
-        
+        print "ASTRAL", "-i", f.name
         proc = subprocess.Popen(['ASTRAL', '-i', f.name], stdout=subprocess.PIPE)
-
-        
         streestr, err = proc.communicate()
         print err
         print streestr
-
         del(proc)
         stree = dendropy.Tree.get_from_string(streestr, 'newick')
         self.result = {"estimatedspeciestree": stree}
         return self.result
+
+import Quartets
+    
+class RunWQMC(xylem.Task):
+    def inputs(self):
+        return [("quartets", Quartets.WeightedQuartetSet)]
+    def outputs(self):
+        return [("estimatedspeciestree", dendropy.Tree)]
+
+    def run(self):
+        f = tempfile.NamedTemporaryFile()
+        o = tempfile.NamedTemporaryFile()
+        ix = self.input_data["quartets"].write(f, 'wqmc', translate=True)
+        print f.name
+        proc = subprocess.Popen(['wQMC', '-weight', 'qrtt='+f.name, 'otre='+o.name])
+        proc.wait()
+        stree = dendropy.Tree.get_from_path(o.name, 'newick')
+        for t in stree.taxon_namespace:
+            t.label = ix[int(t.label)].label
+        self.result = {"estimatedspeciestree":stree}
+        return self.result
+
+
+class RunWastral(xylem.Task):
+    def setup(self, criterion='dp', score=False, exact=False, maximize=True):
+        self.criterion = {'dp':'DPTripartitionScorer', 'bs':'BryantSteelTripartitionScorer',
+                          'rf':'RFTripartitionScorer'}[criterion]
+        self.score = score
+        self.exact = exact
+        self.maximize = maximize
+        self.inputs_ = set()
+        self.outputs_ = set()
+
+        if criterion == 'dp' or criterion == 'bs':
+            self.inputs_.add(("quartets", Quartets.WeightedQuartetSet))
+        elif criterion == 'rf':
+            self.inputs_.add(("genetrees", dendropy.TreeList))
+
+        if not (exact or score):
+            self.inputs_.add(("genetrees", dendropy.TreeList))
+        if score:
+            self.inputs_.add(("estimatedspeciestree", dendropy.Tree))
+            self.outputs_.add(("score", float))
+        else:
+            self.outputs_.add(("estimatedspeciestree", dendropy.Tree))
+    def desc(self):
+        d = self.criterion
+        if self.score:
+            d += ' score '
+        if self.exact:
+            d += ' exact '
+        if self.maximize:
+            d += ' max '
+        return d
+    def inputs(self):
+        return list(self.inputs_)
+    def outputs(self):
+        return list(self.outputs_)
+
+    def run(self):
+
+        o = tempfile.NamedTemporaryFile()
+        
+        args = ['wASTRAL', '-c', self.criterion, '-a', '~/.local/lib/astral.4.7.8.jar',  '-o', o.name]
+        if self.maximize:
+            args += ['--maximize']
+        else:
+            args += ['--minimize']
+
+        if ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
+            qf = tempfile.NamedTemporaryFile(delete=False )
+            self.input_data["quartets"].write(qf, 'wqmc')
+            args += ['-q', qf.name]
+            qf.close()
+        if ("genetrees", dendropy.TreeList) in self.inputs():
+            gf = tempfile.NamedTemporaryFile(delete=False )
+            self.input_data["genetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            args += ['-g', gf.name]
+            gf.close()
+        elif ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
+            gf = tempfile.NamedTemporaryFile(delete=False)
+            gt = dendropy.simulate.star_tree(self.input_data["quartets"].tn)
+            gt.resolve_polytomies()
+            gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            args += ['-g', gf.name]
+            gf.close()
+        if self.score:
+            gf = tempfile.NamedTemporaryFile(delete=False)
+            print self.inputs()
+            print self.input_data
+            gt = self.input_data["estimatedspeciestree"]
+            gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            args += ['-s', gf.name]
+            gf.close()
+        
+        print ' '.join(args)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        out, err = proc.communicate()
+        print out
+        print err
+
+        if not self.score:
+            stree = dendropy.Tree.get_from_path(o.name, 'newick')
+            self.result = {"estimatedspeciestree":stree}
+        else:
+            score = float(open(o.name, 'r').read())
+            self.result = {"score":score}
+        return self.result
+
+class RunSVDQuartets(xylem.Task):
+    def setup(self):
+        pass
+    def inputs(self):
+        return [("alignments", (dendropy.DnaCharacterMatrix,))]
+    def outputs(self):
+        return [("estimatedspeciestree", dendropy.Tree)]
+    
+    def run(self):
+        
+        dna = self.input_data['alignments'][0]
+        print "SVDQuartets"
+        print len(dna)
+        print len(dna[0])
+        f = tempfile.NamedTemporaryFile()
+        print f.name
+        dna.write_to_path(f.name + '.nex', 'nexus')
+
+        import subprocess
+
+        pp = os.path.dirname(__file__) + '/parse_paup_svdtree.sh'
+    
+        out, err = subprocess.Popen(["bash", pp, f.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+
+        tree = dendropy.Tree.get_from_path(f.name + '.svdtree','newick')
+        
+        self.result = {"estimatedspeciestree":tree}
+        return self.result
+
+
+

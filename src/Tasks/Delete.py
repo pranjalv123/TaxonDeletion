@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import Task
+import xylem.Task
 import cPickle
 import numpy as np
 import subprocess
@@ -29,7 +29,7 @@ import uuid
 import dendropy
 import sys
 
-class DeleteTaxaUniform(Task.Task):
+class DeleteTaxaUniform(xylem.Task):
     def setup(self, ndelete, *args, **kwargs):
         self.ndelete = ndelete
     def inputs(self):
@@ -53,7 +53,7 @@ class DeleteTaxaUniform(Task.Task):
         self.result = {"alignments":dna, "genetrees":gt, "speciestree":st}
         return self.result
     
-class DeleteTaxaRandom(Task.Task):
+class DeleteTaxaRandom(xylem.Task):
     def setup(self, ndelete, sigma=0, *args, **kwargs):
         self.ndelete = ndelete
         self.sigma = sigma
@@ -90,7 +90,7 @@ class DeleteTaxaRandom(Task.Task):
         self.result = {"alignments":dna, "genetrees":gt}
         return self.result
 
-class LimitSeqLength(Task.Task):
+class LimitSeqLength(xylem.Task):
     def setup(self, maxlen, *args, **kwargs):
         self.maxlen = maxlen
     def inputs(self):

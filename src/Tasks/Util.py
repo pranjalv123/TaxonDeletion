@@ -23,9 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import dendropy
-import Task
+import xylem.Task
 
-class CastName(Task.Task):
+class CastName(xylem.Task):
     def setup(self, inname, outname, tpe, *args, **kwargs):
         self.local=True
         self.cache=False
@@ -42,7 +42,7 @@ class CastName(Task.Task):
         self.result =  {self.outname : self.input_data[self.inname]}
         return self.result        
 
-class Head(Task.Task):
+class Head(xylem.Task):
     def setup(self, n, *args, **kwargs):
         self.n = n
     def desc(self):
@@ -58,12 +58,3 @@ class Head(Task.Task):
     
     
     
-class Exit(Task.Task):
-    def setup(self, *args, **kwargs):
-        self.EXIT = True
-    def desc(self):
-        return ""
-    def inputs(self):
-        return []
-    def outputs(self):
-        return []

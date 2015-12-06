@@ -43,6 +43,11 @@ class Pipeline:
         return task
     def verify(self):
         for t in self.tasks:
+            if t.outputs() == None:
+                print t, "has invalid outputs()"
+            if t.inputs() == None:
+                print t, "has invalid inputs()"
+
             for i in t.inputs():
                 good = False
                 for d in t.depends():
@@ -50,6 +55,7 @@ class Pipeline:
                         good = True
                 if not good:
                     print "Not found:", t, i
+                    print '\n'.join([':'.join([str(d), str(d.outputs())]) for d in t.depends()])
                     return False
         return True
     def prune(self):
@@ -66,8 +72,8 @@ class Pipeline:
         if '--nodot' not in sys.argv:
             subprocess.Popen(['dot', fname, '-Tpng', '-O'])
     def ready(self, cache=True, regen=False):
-        self.verify()
         self.todot()
+        self.verify()
         for task in self.tasks:
             if task.is_result():
                 self.scheduler.schedule(task)

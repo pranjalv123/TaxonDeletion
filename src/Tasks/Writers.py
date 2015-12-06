@@ -1,7 +1,7 @@
 import dendropy
-import Task
+import xylem.Task
 
-class WriteSpeciesTree(Task.Task):
+class WriteSpeciesTree(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
@@ -19,7 +19,7 @@ class WriteSpeciesTree(Task.Task):
         return self.result
 
 
-class WriteGeneTrees(Task.Task):
+class WriteGeneTrees(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
@@ -36,7 +36,7 @@ class WriteGeneTrees(Task.Task):
         return self.result
 
 
-class WritePhylip(Task.Task):
+class WritePhylip(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
         self.cache = False
@@ -51,5 +51,30 @@ class WritePhylip(Task.Task):
         stream = open(self.path, 'w')
         for al in self.input_data["alignments"]:
             al.write_to_stream(stream, schema="phylip", suppress_missing_taxa=True)
+        self.result = {}
+        return self.result
+
+
+import fcntl
+
+class WriteScore(xylem.Task):
+    def setup(self, location, desc):
+        self.path = location
+        self.description = desc
+        self.cache = False
+        self._is_result = True
+        f = open(location, 'w')
+        fcntl.lockf(f, fcntl.LOCK_UN)
+    def desc(self):
+        return self.path + ':' + self.description
+    def inputs(self):
+        return [("score", float)]
+    def outputss(self):
+        return []
+    def run(self):
+        f = open(self.path, 'a')
+        fcntl.lockf(f, fcntl.LOCK_EX)
+        f.write(self.description + ',' + self.input_data['score'])
+        f.close()
         self.result = {}
         return self.result

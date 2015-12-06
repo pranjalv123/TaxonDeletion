@@ -22,10 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import Task
-import Tasks
+#import Tasks
 import sys
 import gc
 import collections
+
+class Exit(Task.Task):
+    def setup(self, *args, **kwargs):
+        self.EXIT = True
+    def desc(self):
+        return ""
+    def inputs(self):
+        return []
+    def outputs(self):
+        return []
+
 
 def Scheduler(cache=True, regen=False):
     if '--nocache' in sys.argv:
@@ -112,7 +123,7 @@ class DistributedSerialScheduler:
             p.ready()
             self.sched.run_pl()
                     
-if '--serial' not in sys.argv:
+if '--distributed' in sys.argv:
     from mpi4py import MPI                    
                     
 class MPIScheduler:

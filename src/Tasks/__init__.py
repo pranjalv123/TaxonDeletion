@@ -8,10 +8,13 @@ dendropy.datamodel.charmatrixmodel.RestrictionSitesCharacterDataSequence = dendr
 dendropy.datamodel.charmatrixmodel.InfiniteSitesCharacterDataSequence = dendropy.InfiniteSitesCharacterMatrix.InfiniteSitesCharacterDataSequence
 dendropy.datamodel.charmatrixmodel.StandardCharacterDataSequence = dendropy.StandardCharacterMatrix.StandardCharacterDataSequence
 
-
 from Methods import *
 from Delete import *
 from Phylo import *
 from Readers import *
 from Util import *
 from Writers import *
+from Quartets import *
+from Sequence import *
+
+
