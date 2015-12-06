@@ -170,19 +170,19 @@ class RunWastral(xylem.Task):
             qf = tempfile.NamedTemporaryFile(delete=False )
             self.input_data["quartets"].write(qf, 'wqmc')
             args += ['-q', qf.name]
-#            qf.close()
+            qf.flush()
         if ("genetrees", dendropy.TreeList) in self.inputs():
             gf = tempfile.NamedTemporaryFile(delete=False )
             self.input_data["genetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
             args += ['-g', gf.name]
-#            gf.close()
+            gf.flush()
         elif ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
             gf = tempfile.NamedTemporaryFile(delete=False)
             gt = dendropy.simulate.star_tree(self.input_data["quartets"].tn)
             gt.resolve_polytomies()
             gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
             args += ['-g', gf.name]
-#            gf.close()
+            gf.flush()
         if self.score:
             gf = tempfile.NamedTemporaryFile(delete=False)
             print self.inputs()
@@ -193,7 +193,7 @@ class RunWastral(xylem.Task):
             print (open(gf.name).read())
             args += ['-s', gf.name]
             
-#            gf.close()
+            gf.flush()
         
         print ' '.join(args)
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
