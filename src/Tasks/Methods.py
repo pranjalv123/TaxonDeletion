@@ -196,7 +196,7 @@ class RunWastral(xylem.Task):
             gf.flush()
         
         print ' '.join(args)
-        priunt args
+        print args
         proc = subprocess.Popen(args)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.wait()
 #        out, err = proc.communicate()
