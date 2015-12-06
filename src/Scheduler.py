@@ -105,13 +105,23 @@ class SerialScheduler:
                     self.schedule(dep)
                 self.queue.append(task)
 
+
+import os
+def rank_hack():
+    if 'ALPS_APP_PE' in os.environ:
+        return int(os.environ['ALPS_APP_PE']), int(os.environ['NUM_PES'])
+    if 'OMPI_COMM_WORLD_RANK' in os.environ:
+        return int(os.environ['OMPI_COMM_WORLD_RANK']), int(os.environ['OMPI_COMM_WORLD_SIZE'])
+    return 0, 1
+                
 class DistributedSerialScheduler:
     def __init__(self, cache = True, regen = False):
         self.sched = SerialScheduler(cache, regen)
         self.index = 0
-        self.comm = MPI.COMM_WORLD
-        self.rank = self.comm.Get_rank()
-        self.size = self.comm.Get_size()
+#        self.comm = MPI.COMM_WORLD
+        self.rank,self.size = rank_hack()#self.comm.Get_rank()
+        print "RANK,SIZE:", self.rank,self.size
+#        self.size = self.comm.Get_size()
         self.pipelines = []
     def add(self, plfun):
         if self.index == self.rank:
@@ -123,8 +133,8 @@ class DistributedSerialScheduler:
             p.ready()
             self.sched.run_pl()
                     
-if '--distributed' in sys.argv:
-    from mpi4py import MPI                    
+#if '--distributed' in sys.argv:
+#    from mpi4py import MPI                    
                     
 class MPIScheduler:
     def __init__(self, cache = True, regen=False, hostrank=0):
