@@ -196,11 +196,11 @@ class RunWastral(xylem.Task):
             gf.flush()
         
         print ' '.join(args)
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
-        out, err = proc.communicate()
-        print out
-        print err
+        proc = subprocess.Popen(args)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc.wait()
+#        out, err = proc.communicate()
+#        print out
+#        print err
 
         if not self.score:
             stree = dendropy.Tree.get_from_path(o.name, 'newick')
