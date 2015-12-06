@@ -160,7 +160,7 @@ class RunWastral(xylem.Task):
 
         o = tempfile.NamedTemporaryFile()
         
-        args = ['wASTRAL', '-c', self.criterion, '-a', '~/.local/lib/astral.4.7.8.jar',  '-o', o.name,'-v', '--debug']
+        args = ['wASTRAL', '-c', self.criterion, '-a', '~/.local/lib/astral.4.7.8.jar',  '-o', o.name,'-v', 'debug']
         if self.maximize:
             args += ['--maximize']
         else:
@@ -196,6 +196,7 @@ class RunWastral(xylem.Task):
             gf.flush()
         
         print ' '.join(args)
+        priunt args
         proc = subprocess.Popen(args)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.wait()
 #        out, err = proc.communicate()
