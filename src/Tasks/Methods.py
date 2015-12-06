@@ -189,6 +189,7 @@ class RunWastral(xylem.Task):
             print self.input_data
             gt = self.input_data["estimatedspeciestree"]
             gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            print "SCORING TREE:", str(gt)
             args += ['-s', gf.name]
             gf.close()
         
