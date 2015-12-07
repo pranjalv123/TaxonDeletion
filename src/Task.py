@@ -129,6 +129,7 @@ class Task(object):
         if self.status() == "complete":
             return self.result
         t0 = time.clock()
+        print "Starting", self
         if not cache or not self.cache:
             if not self.status() == "ready":
                 raise DependenciesNotCompleteException
