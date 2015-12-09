@@ -30,27 +30,55 @@ import dendropy
 import sys
 
 class DeleteTaxaUniform(xylem.Task):
-    def setup(self, ndelete, *args, **kwargs):
+    def setup(self, ndelete, gtrees=True, alignments=True, stree=True, *args, **kwargs):
         self.ndelete = ndelete
+        self.gtrees=gtrees
+        self.alignments=alignments
+        self.stree = stree
     def inputs(self):
-        return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
+        inp = []
+        if self.gtrees:
+            inp +=("genetrees", dendropy.TreeList)
+        if self.seqs:
+            inp +=  ("alignments", (dendropy.DnaCharacterMatrix,))
+        if self.stree:
+            inp += ("speciestree", dendropy.Tree)
+        return inp
     def outputs(self):
-        return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,)), ("speciestree", dendropy.Tree)]
+        return self.inputs()
     def desc(self):
         return str(self.ndelete)
     def run(self):
-        dna = [i.clone() for i in self.input_data["alignments"]]
-        gt = self.input_data["genetrees"].clone()
-        st = self.input_data["speciestree"].clone()
-        gt.migrate_taxon_namespace(dna[0].taxon_namespace)
-        st.migrate_taxon_namespace(dna[0].taxon_namespace)
-        deletion_list = np.random.choice(list(gt.taxon_namespace), size=self.ndelete, replace=False)
-        for g in gt:
-            g.prune_taxa(deletion_list)
-        for seq in dna:
-            seq.discard_sequences(deletion_list)
-        st.prune_taxa(deletion_list)
-        self.result = {"alignments":dna, "genetrees":gt, "speciestree":st}
+        tn = None
+        if self.seqs:
+            dna = [i.clone() for i in self.input_data["alignments"]]
+            tn = dna[0].taxon_namespace
+        if self.gtrees:
+            gt = self.input_data["genetrees"].clone()
+            if tn:
+                gt.migrate_taxon_namespace(tn)
+            else:
+                tn = gt.taxon_namespace
+        if self.stree:
+            st = self.input_data["speciestree"].clone()
+            if tn:
+                st.migrate_taxon_namespace(tn)
+            else:
+                tn = st.taxon_namespace
+
+        deletion_list = np.random.choice(list(tn), size=self.ndelete, replace=False)
+        self.result = []
+        if self.gtrees:
+            for g in gt:
+                g.prune_taxa(deletion_list)
+            self.result['genetrees'] = gt
+        if self.seqs:
+            for seq in dna:
+                seq.discard_sequences(deletion_list)
+            self.result['alignments'] = dna
+        if self.stree:
+            st.prune_taxa(deletion_list)
+            self.result['speciestree'] = st
         return self.result
     
 class DeleteTaxaRandom(xylem.Task):
