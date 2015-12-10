@@ -67,7 +67,7 @@ class DeleteTaxaUniform(xylem.Task):
                 tn = st.taxon_namespace
 
         deletion_list = np.random.choice(list(tn), size=self.ndelete, replace=False)
-        self.result = []
+        self.result = {}
         if self.gtrees:
             for g in gt:
                 g.prune_taxa(deletion_list)
