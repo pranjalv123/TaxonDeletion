@@ -33,7 +33,7 @@ class DeleteTaxaUniform(xylem.Task):
     def setup(self, ndelete, gtrees=True, alignments=True, stree=True, *args, **kwargs):
         self.ndelete = ndelete
         self.gtrees=gtrees
-        self.alignments=alignments
+        self.seqs=alignments
         self.stree = stree
     def inputs(self):
         inp = []
