@@ -169,10 +169,18 @@ class SVDQuartetFrequencies(xylem.Task):
 
 
     def run(self):
-        dna = self.input_data['alignments'][0]
-        
+        dna = self.input_data['alignments'][0].clone(depth=2)
+
         taxon_namespace = dna.taxon_namespace
 
+        del_list = []
+        for t in taxon_namespace:
+            if len(dna[t]) == 0:
+                del_list.append(t)
+
+        for t in del_list:
+            taxon_namespace.remove_taxon(t)
+        
         taxon_namespace.sort(key=lambda x: x.label)
 
         f = tempfile.NamedTemporaryFile()
