@@ -73,10 +73,11 @@ class SerialScheduler:
         self.pipelines.append(plfun(self))
 
     def run(self):
-        for p in self.pipelines:
+        while len(self.pipelines):
+            p = self.pipelines.pop()
             self.current_pl = p
             p.ready()
-            self.run_pl()
+            sef.run_pl()
         
     def run_pl(self):
         print "Running scheduler"
