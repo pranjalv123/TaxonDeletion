@@ -38,11 +38,11 @@ class DeleteTaxaUniform(xylem.Task):
     def inputs(self):
         inp = []
         if self.gtrees:
-            inp +=("genetrees", dendropy.TreeList)
+            inp.append(("genetrees", dendropy.TreeList))
         if self.seqs:
-            inp +=  ("alignments", (dendropy.DnaCharacterMatrix,))
+            inp.append(("alignments", (dendropy.DnaCharacterMatrix,)))
         if self.stree:
-            inp += ("speciestree", dendropy.Tree)
+            inp.append(("speciestree", dendropy.Tree))
         return inp
     def outputs(self):
         return self.inputs()
