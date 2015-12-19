@@ -264,4 +264,37 @@ class RunSVDQuartets(xylem.Task):
         return self.result
 
 
-
+class RunMulRF(xylem.Task):
+    def setup(self, niter=10):
+        self.niter = niter
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("estimatedspeciestree", dendropy.Tree)]    
+    def run(self):
+        f = tempfile.NamedTemporaryFile()
+        gt = self.input_data["genetrees"]
+        gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
+        gt.write(path=f.name, schema='newick')
+        bestscore = 9999999999999
+        stree = None
+        
+        for i in range(self.niter):
+            st = tempfile.NamedTemporaryFile()
+            args = ['MulRFSupertree', '-i', f.name, '-o', st.name]
+            proc = subprocess.Popen(args)
+            proc.wait()
+            lines = st.readlines()
+            print "LINES:"
+            for l in lines:
+                print l
+            score = float(lines[0][len("[ Species Tree: Unrooted RF Score = "):-2])
+            tree = lines[1]
+            print score
+            if score < bestscore:
+                bestscore = score
+                stree = dendropy.Tree.get_from_string(lines[1], 'newick')
+            
+            
+        self.result = {"estimatedspeciestree":stree}
+        return self.result

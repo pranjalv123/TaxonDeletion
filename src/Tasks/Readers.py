@@ -41,7 +41,10 @@ class ReadSpeciesTree(xylem.Task):
     def outputs(self):
         return [("speciestree", dendropy.Tree)]
     def run(self):
-        tree = dendropy.Tree.get_from_path(self.path, "newick")
+        s = open(self.path).read()
+        if s[-1] != ';':
+            s += ';'
+        tree = dendropy.Tree.get_from_string(s, "newick")
         print "read species tree with", len(tree.taxon_namespace), "taxa"
         self.result = {"speciestree": tree}
         return self.result

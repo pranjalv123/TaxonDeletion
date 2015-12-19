@@ -31,13 +31,15 @@ import time
 class DependenciesNotCompleteException(Exception):
     pass
 
-class Task(object): 
+class Task(object):
+    cachefile_set = {}
     def __init__(self, *args, **kwargs):
         cachefile=kwargs.pop('cachefile', None)
         local=kwargs.pop('local', False)
         cache=kwargs.pop('cache', True)
         is_result=kwargs.pop('is_result', False)
-
+                
+        
         self.dependencies = set()
         self.depended = set()
         self.input_data = {}
@@ -52,6 +54,16 @@ class Task(object):
         self.cachefile = cachefile
         self._is_result = is_result
 
+
+        if cachefile and cache:
+            if cachefile in Task.cachefile_set:
+                print "ERROR", cachefile, "used as cache file for two tasks!:"
+                print str(Task.cachefile_set[cachefile])
+                print str(self)
+                exit(-1)
+        Task.cachefile_set[cachefile] = self
+
+        
         
         self.setup(*args, **kwargs)
 
@@ -128,14 +140,14 @@ class Task(object):
     def execute(self, cache=True, regen=False):
         if self.status() == "complete":
             return self.result
-        t0 = time.clock()
-        print "Starting", self
+        t0 = time.time()
+        print "Trying to run", self
         if not cache or not self.cache:
             if not self.status() == "ready":
                 raise DependenciesNotCompleteException
-                
+            print "Starting", self
             self.result = self.run()
-            print "Running", self, "took", time.clock() - t0, "seconds"
+            print "Running", self, "took", time.time() - t0, "seconds"
             return self.result
         filename = self.storefile()
         if not filename:
