@@ -27,6 +27,7 @@ import sys
 import gc
 import collections
 
+
 class Exit(Task.Task):
     def setup(self, *args, **kwargs):
         self.EXIT = True
@@ -63,9 +64,11 @@ class SerialScheduler:
         self.scheduled = set()
     def schedule(self, task):
         if task.uid in self.scheduled:
+            print "Didn't schedule", str(task), task.status()
             return
         #task.set_status("scheduled")
         self.scheduled.add(task.uid)
+        print "Scheduling", task
         self.queue.append(task)
         self.tasks[task.uid] = task
         
@@ -77,7 +80,7 @@ class SerialScheduler:
             p = self.pipelines.pop()
             self.current_pl = p
             p.ready()
-            sef.run_pl()
+            self.run_pl()
         
     def run_pl(self):
         print "Running scheduler"
@@ -93,7 +96,7 @@ class SerialScheduler:
 
             try:
                 task.execute(self.cache, self.regen)
-            
+                self.current_pl.todot()
                 task.set_status("complete")
                 for t2 in task.allows():
                     t2.req_complete(task)
@@ -104,7 +107,15 @@ class SerialScheduler:
             except Task.DependenciesNotCompleteException:
                 for dep in task.dependencies:
                     self.schedule(dep)
+                print "Depends on:"
+                for i in task.dependencies:
+                    print str(i), i.status()
                 self.queue.append(task)
+                print
+                print "QUEUE:"
+                for i in self.queue:
+                    print i
+                print
 
 
 import os
