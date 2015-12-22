@@ -66,6 +66,8 @@ class RunASTRID(xylem.Task):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
         a = ASTRID.ASTRID(self.input_data["genetrees"])
+        print a
+        print self.input_data["genetrees"]
         a.run(self.distmethod)
         self.result = {"estimatedspeciestree": a.tree}
         print a.tree
@@ -107,10 +109,11 @@ class RunWQMC(xylem.Task):
         return [("estimatedspeciestree", dendropy.Tree)]
 
     def run(self):
-        f = tempfile.NamedTemporaryFile()
-        o = tempfile.NamedTemporaryFile()
+        f = tempfile.NamedTemporaryFile(delete=False)
+        o = tempfile.NamedTemporaryFile(delete=False)
         ix = self.input_data["quartets"].write(f, 'wqmc', translate=True)
         print f.name
+        f.close()
         proc = subprocess.Popen(['wQMC', '-weight', 'qrtt='+f.name, 'otre='+o.name])
         proc.wait()
         stree = dendropy.Tree.get_from_path(o.name, 'newick')
@@ -221,7 +224,22 @@ class RunSVDQuartets(xylem.Task):
     
     def run(self):
         
-        dna = self.input_data['alignments'][0]
+        dna = self.input_data['alignments'][0].clone(depth=2)
+
+        
+        taxon_namespace = dna.taxon_namespace
+
+        del_list = []
+        for t in taxon_namespace:
+            if len(dna[t]) == 0:
+                del_list.append(t)
+
+        for t in del_list:
+            taxon_namespace.remove_taxon(t)
+        
+        taxon_namespace.sort(key=lambda x: x.label)
+
+
         print "SVDQuartets"
         print len(dna)
         print len(dna[0])
@@ -234,8 +252,13 @@ class RunSVDQuartets(xylem.Task):
         pp = os.path.dirname(__file__) + '/parse_paup_svdtree.sh'
         print " ".join(["bash", pp, f.name])
         out, err = subprocess.Popen(["bash", pp, f.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-
-        tree = dendropy.Tree.get_from_path(f.name + '.svdtree','newick')
+        
+        try:
+            tree = dendropy.Tree.get_from_path(f.name + '.svdtree','newick')
+        except IOError as e:
+            print e
+            print out, err
+            exit(0)
         
         self.result = {"estimatedspeciestree":tree}
         return self.result
