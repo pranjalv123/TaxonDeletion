@@ -142,6 +142,7 @@ class DistributedSerialScheduler:
         self.index %= self.size
     def run(self):
         for p in self.pipelines:
+            self.sched.current_pl = p
             p.ready()
             self.sched.run_pl()
                     
