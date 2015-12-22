@@ -155,13 +155,13 @@ class Task(object):
                 raise DependenciesNotCompleteException
             print "Filename", filename, "not found", self.cache
             self.result =  self.run()
-            print "Running", self, "took", time.clock() - t0, "seconds"
+            print "Running", self, "took", time.time() - t0, "seconds"
             return self.result
         try:
             if not regen:
                 self.result = self.read(filename)
                 if self.result:
-                    print "Reading cache of", self, "took", time.clock() - t0, "seconds"
+                    print "Reading cache of", self, "took", time.time() - t0, "seconds"
                     return self.result
         except Exception as e:
             print "Couldn't read file!", filename
@@ -174,7 +174,7 @@ class Task(object):
         print "Wrote", self, "to", filename
         for i in self.outputs():
             assert(i[0] in self.result.keys())
-        print "Running", self, "took", time.clock() - t0, "seconds"
+        print "Running", self, "took", time.time() - t0, "seconds"
         return self.result
 
     def __hash__(self):

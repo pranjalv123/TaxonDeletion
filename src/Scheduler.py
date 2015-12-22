@@ -94,6 +94,7 @@ class SerialScheduler:
 
             gc.collect()
 
+
             try:
                 task.execute(self.cache, self.regen)
                 self.current_pl.todot()
@@ -116,6 +117,11 @@ class SerialScheduler:
                 for i in self.queue:
                     print i
                 print
+            except Exception as e:
+                open("ERRORS", 'a').write(str(task), 'failed with', e)
+                print e
+                self.queue.clear()
+                break
 
 
 import os
