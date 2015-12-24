@@ -119,12 +119,13 @@ class SerialScheduler:
                 print
             except Exception as e:
                 open("ERRORS", 'a').write(str(task), 'failed with', e)
-                print e
+                print "FAILEDTASK", e
                 self.queue.clear()
                 break
 
 
 import os
+import sys
 def rank_hack():
     if 'ALPS_APP_PE' in os.environ:
         return int(os.environ['ALPS_APP_PE']), int(os.environ['NUM_PES'])
@@ -138,6 +139,10 @@ class DistributedSerialScheduler:
         self.index = 0
 #        self.comm = MPI.COMM_WORLD
         self.rank,self.size = rank_hack()#self.comm.Get_rank()
+
+        sys.stdout = open(str(self.rank)  + '_out', 'w')
+        sys.stderr = open(str(self.rank)  + '_err', 'w')
+
         print "RANK,SIZE:", self.rank,self.size
 #        self.size = self.comm.Get_size()
         self.pipelines = []

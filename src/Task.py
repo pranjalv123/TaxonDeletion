@@ -146,7 +146,9 @@ class Task(object):
             if not self.status() == "ready":
                 raise DependenciesNotCompleteException
             print "Starting", self
+            open("RAN", 'a').write(str(self))
             self.result = self.run()
+            open("COMPLETED", 'a').write(str(self))
             print "Running", self, "took", time.time() - t0, "seconds"
             return self.result
         filename = self.storefile()
