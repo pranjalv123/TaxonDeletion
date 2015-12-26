@@ -48,6 +48,8 @@ def Scheduler(cache=True, regen=False):
         return SerialScheduler(cache, regen)
     if '--distributed' in sys.argv:
         return DistributedSerialScheduler(cache, regen)
+    if '--single' in sys.argv:
+        return SingleTaskScheduler(int(sys.argv[sys.argv.index('--single') + 1]), cache, regen)
     return MPIScheduler()
 
 AVAIL=1
@@ -151,7 +153,23 @@ class DistributedSerialScheduler:
             self.sched.current_pl = p
             p.ready()
             self.sched.run_pl()
-                    
+
+
+class SingleTaskScheduler:
+    def __init__(self, n, cache = True, regen = False):
+        self.sched = SerialScheduler(cache, regen)
+        self.index = n
+        self.pipeline = None
+    def add(self, plfun):
+        if self.index == self.rank:
+            self.pipeline = (plfun(self.sched))
+        self.index += 1
+    def run(self):
+        self.sched.current_pl = self.pipeline
+        self.pipeline.ready()
+        self.sched.run_pl()
+
+
 #if '--distributed' in sys.argv:
 #    from mpi4py import MPI                    
                     
