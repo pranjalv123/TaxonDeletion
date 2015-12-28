@@ -4,7 +4,6 @@ import xylem.Task
 class WriteSpeciesTree(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
-        self.cache = False
         self.local = True
     def desc(self):
         return self.path
@@ -22,7 +21,6 @@ class WriteSpeciesTree(xylem.Task):
 class WriteGeneTrees(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
-        self.cache = False
         self.local = True
     def desc(self):
         return self.path
@@ -39,7 +37,6 @@ class WriteGeneTrees(xylem.Task):
 class WritePhylip(xylem.Task):
     def setup(self, location, *args, **kwargs):
         self.path = location
-        self.cache = False
         self.local = True
     def desc(self):
         return self.path
@@ -61,7 +58,6 @@ class WriteScore(xylem.Task):
     def setup(self, location, desc):
         self.path = location
         self.description = desc
-        self.cache = False
         self._is_result = True
         f = open(location, 'w')
         fcntl.lockf(f, fcntl.LOCK_UN)
