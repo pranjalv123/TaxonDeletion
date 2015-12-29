@@ -37,6 +37,7 @@ class Task(object):
         cachefile=kwargs.pop('cachefile', None)
         local=kwargs.pop('local', False)
         cache=kwargs.pop('cache', True)
+        self.regen=kwargs.pop('regen', False)
         is_result=kwargs.pop('is_result', False)
                 
         
@@ -44,6 +45,8 @@ class Task(object):
         self.depended = set()
         self.input_data = {}
         self._status="waiting"
+
+        self._dot_status="waiting"
 
         self.EXIT=False
         self.uid = uuid.uuid1()
@@ -112,6 +115,7 @@ class Task(object):
             if i.status() != "complete":
                 return
         self.set_status("ready")
+        self._dot_status="ready"
         return
 
     def get_results(self):
@@ -119,6 +123,7 @@ class Task(object):
                     
     def status(self): #return "waiting" if not ready, "ready", "scheduled", "running", or "complete"
         if len(self.dependencies) == 0 and self._status == "waiting":
+            self._dot_status="ready"
             return "ready"
         else:
             return self._status
@@ -127,6 +132,7 @@ class Task(object):
         self._status = status
 
     def finish(self):
+        self._dot_status="complete"
         self.set_status("complete")
 
     def set_inputs(self, inputs):
@@ -138,17 +144,19 @@ class Task(object):
         return ""
     
     def execute(self, cache=True, regen=False):
+        if self.regen:
+            regen = True
         if self.status() == "complete":
             return self.result
         t0 = time.time()
-        print "Trying to run", self
         if not cache or not self.cache:
             if not self.status() == "ready":
                 raise DependenciesNotCompleteException
-            print "Starting", self
-            open("RAN", 'a').write(str(self))
+            print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
+            open("RAN", 'a').write(str(self) + '\n')
+            self._dot_status="running"
             self.result = self.run()
-            open("COMPLETED", 'a').write(str(self))
+            open("COMPLETED", 'a').write(str(self) + '\n')
             print "Running", self, "took", time.time() - t0, "seconds"
             return self.result
         filename = self.storefile()
@@ -156,7 +164,11 @@ class Task(object):
             if not self.status() == "ready":
                 raise DependenciesNotCompleteException
             print "Filename", filename, "not found", self.cache
+            open("RAN", 'a').write(str(self) + '\n')
+            print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
+            self._dot_status="running"
             self.result =  self.run()
+            open("COMPLETED", 'a').write(str(self) + '\n')
             print "Running", self, "took", time.time() - t0, "seconds"
             return self.result
         try:
@@ -170,7 +182,11 @@ class Task(object):
             print e
         if not self.status() == "ready":
             raise DependenciesNotCompleteException
+        open("RAN", 'a').write(str(self) + '\n')
+        print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
+        self._dot_status="running"
         self.result = self.run()
+        open("COMPLETED", 'a').write(str(self) + '\n')
         self.write(filename)
 
         print "Wrote", self, "to", filename

@@ -33,6 +33,15 @@ colormap['running']='green'
 colormap['complete']='blue'
 
 
+import os
+def stylemap(task):
+    if not task.cache or not task.cachefile:
+        return 'dashed'
+    if os.path.isfile(task.cachefile):
+        return 'solid'
+    return 'dotted'
+
+
 class Pipeline:
     def __init__(self, scheduler, desc):
         self.tasks = []
@@ -65,10 +74,11 @@ class Pipeline:
         f = open(fname, 'w')
         f.write('digraph pipeline {\n')
         for task in self.tasks:
-            f.write('n'+task.uid.hex + '[label="' + str(task) + '",color="' + colormap[task.status()] + '"];\n')
+            f.write('n'+task.uid.hex + '[label="' + str(task) + '",color="' + colormap[task._dot_status] + '",style="' + stylemap(task) + '"];\n')
             for dep in task.dependencies:
                 f.write('n'+dep.uid.hex + '->' + 'n'+task.uid.hex +';\n')
         f.write('}\n')
+        f.close()
         if '--nodot' not in sys.argv:
             subprocess.Popen(['dot', fname, '-Tpng', '-O'])
     def ready(self, cache=True, regen=False):

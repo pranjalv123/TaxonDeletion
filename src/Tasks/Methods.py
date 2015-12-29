@@ -197,7 +197,8 @@ class RunWastral(xylem.Task):
             args += ['-s', gf.name]
             
             gf.flush()
-        
+        if self.exact:
+            args += ['-x']
         print ' '.join(args)
         print args
         proc = subprocess.Popen(args)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
