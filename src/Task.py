@@ -179,8 +179,11 @@ class Task(object):
                     return self.result
         except Exception as e:
             print "Couldn't read file!", filename
-            raise e
+            print "Running instead"
         if not self.status() == "ready":
+            print "Dependencies for", str(self), "not complete"
+            for d in self.dependencies:
+                print d, d._dot_status, d.status()            
             raise DependenciesNotCompleteException
         open("RAN", 'a').write(str(self) + '\n')
         print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
