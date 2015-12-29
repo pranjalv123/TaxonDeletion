@@ -179,7 +179,7 @@ class Task(object):
                     return self.result
         except Exception as e:
             print "Couldn't read file!", filename
-            print e
+            raise e
         if not self.status() == "ready":
             raise DependenciesNotCompleteException
         open("RAN", 'a').write(str(self) + '\n')
