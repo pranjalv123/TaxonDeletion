@@ -111,13 +111,6 @@ class SerialScheduler:
                         print "to enable", str(task)
                 self.queue.append(task)
 
-            except Exception as e:
-                print 
-                open("ERRORS", 'a').write(str(task) + 'failed with' + str(e))
-                print "FAILEDTASK", e
-                self.queue.clear()
-                break
-
 
 import os
 import sys

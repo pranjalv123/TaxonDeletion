@@ -40,7 +40,7 @@ class Task(object):
         self.regen=kwargs.pop('regen', False)
         is_result=kwargs.pop('is_result', False)
                 
-        
+        self.result = None
         self.dependencies = set()
         self.depended = set()
         self.input_data = {}
