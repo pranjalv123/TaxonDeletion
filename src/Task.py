@@ -142,61 +142,96 @@ class Task(object):
         if self.cachefile:
             return self.cachefile
         return ""
-    
-    def execute(self, cache=True, regen=False):
-        if self.regen:
-            regen = True
-        if self.status() == "complete":
-            return self.result
-        t0 = time.time()
-        if not cache or not self.cache:
-            if not self.status() == "ready":
-                raise DependenciesNotCompleteException
-            print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
-            open("RAN", 'a').write(str(self) + '\n')
-            self._dot_status="running"
-            self.result = self.run()
-            open("COMPLETED", 'a').write(str(self) + '\n')
-            print "Running", self, "took", time.time() - t0, "seconds"
-            return self.result
-        filename = self.storefile()
-        if not filename:
-            if not self.status() == "ready":
-                raise DependenciesNotCompleteException
-            print "Filename", filename, "not found", self.cache
-            open("RAN", 'a').write(str(self) + '\n')
-            print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
-            self._dot_status="running"
-            self.result =  self.run()
-            open("COMPLETED", 'a').write(str(self) + '\n')
-            print "Running", self, "took", time.time() - t0, "seconds"
-            return self.result
-        try:
-            if not regen:
-                self.result = self.read(filename)
+
+    def get_cache(self, cache=True, regen=False):
+        cache &= self.cache
+        regen &= self.regen
+        if self.result:
+            return True
+        if cache & (not regen) & self.storefile():
+            try:
+                self.result = self.read(self.storefile())
                 if self.result:
                     print "Reading cache of", self, "took", time.time() - t0, "seconds"
-                    return self.result
-        except Exception as e:
-            print "Couldn't read file!", filename
-            print "Running instead"
-        if not self.status() == "ready":
-            print "Dependencies for", str(self), "not complete"
-            for d in self.dependencies:
-                print d, d._dot_status, d.status()            
-            raise DependenciesNotCompleteException
-        open("RAN", 'a').write(str(self) + '\n')
-        print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
-        self._dot_status="running"
-        self.result = self.run()
-        open("COMPLETED", 'a').write(str(self) + '\n')
-        self.write(filename)
+                    return True
+            except Exception as e:
+                return False
 
-        print "Wrote", self, "to", filename
-        for i in self.outputs():
-            assert(i[0] in self.result.keys())
+    def write_cache(self, cache=True, regen=False):
+        cache &= self.cache
+        if cache & self.storefile():
+            self.write(self.storefile())
+        
+    def execute(self, cache=True, regen=False):
+        self.get_cache(cache, regen)
+        if self.result or self.status() == "complete":
+            return self.result
+
+        if not self.status() == "ready":
+            raise DependenciesNotCompleteException
+        
+        print "Starting", str(self)
+        self._dot_status="running"
+        t0 = time.time()
+        self.result = self.run()
         print "Running", self, "took", time.time() - t0, "seconds"
-        return self.result
+        
+        self.write_cache
+    
+    # def execute(self, cache=True, regen=False):
+    #     if self.regen:
+    #         regen = True
+    #     if self.status() == "complete":
+    #         return self.result
+    #     t0 = time.time()
+    #     if not cache or not self.cache:
+    #         if not self.status() == "ready":
+    #             raise DependenciesNotCompleteException
+    #         print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
+    #         open("RAN", 'a').write(str(self) + '\n')
+    #         self._dot_status="running"
+    #         self.result = self.run()
+    #         open("COMPLETED", 'a').write(str(self) + '\n')
+    #         print "Running", self, "took", time.time() - t0, "seconds"
+    #         return self.result
+    #     filename = self.storefile()
+    #     if not filename:
+    #         if not self.status() == "ready":
+    #             raise DependenciesNotCompleteException
+    #         print "Filename", filename, "not found", self.cache
+    #         open("RAN", 'a').write(str(self) + '\n')
+    #         print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
+    #         self._dot_status="running"
+    #         self.result =  self.run()
+    #         open("COMPLETED", 'a').write(str(self) + '\n')
+    #         print "Running", self, "took", time.time() - t0, "seconds"
+    #         return self.result
+    #     try:
+    #         if not regen:
+    #             self.result = self.read(filename)
+    #             if self.result:
+    #                 print "Reading cache of", self, "took", time.time() - t0, "seconds"
+    #                 return self.result
+    #     except Exception as e:
+    #         print "Couldn't read file!", filename
+    #         print "Running instead"
+    #     if not self.status() == "ready":
+    #         print "Dependencies for", str(self), "not complete"
+    #         for d in self.dependencies:
+    #             print d, d._dot_status, d.status()            
+    #         raise DependenciesNotCompleteException
+    #     open("RAN", 'a').write(str(self) + '\n')
+    #     print "Starting", self, "which enables", "\n".join([str(i) for i in self.depended])
+    #     self._dot_status="running"
+    #     self.result = self.run()
+    #     open("COMPLETED", 'a').write(str(self) + '\n')
+    #     self.write(filename)
+
+    #     print "Wrote", self, "to", filename
+    #     for i in self.outputs():
+    #         assert(i[0] in self.result.keys())
+    #     print "Running", self, "took", time.time() - t0, "seconds"
+    #     return self.result
 
     def __hash__(self):
         try:
