@@ -50,7 +50,7 @@ class BootstrapGenes(xylem.Task):
             for i in range(len(mats)):
                 x = random.randint(0, len(mats) - 1)
                 output.extend_sequences(mats[x])
-            omats.append(output
+            omats.append(output)
         self.result = {"alignments": omats}
         return self.result
     
