@@ -45,7 +45,7 @@ class RunFastTree(xylem.Task):
         sio = StringIO.StringIO()
         for seq in self.seqs:
             seq.write_to_stream(sio, schema="phylip", suppress_missing_taxa=True)
-        proc = subprocess.Popen(['fasttree', '-nt', '-gtr', '-nopr', '-gamma', '-n', str(len(self.seqs))], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', '-n', str(len(self.seqs))], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         trees, err = proc.communicate(sio.getvalue())
         print err
         genetrees = dendropy.TreeList.get_from_string(trees, 'newick')
@@ -176,6 +176,7 @@ class RunWastral(xylem.Task):
             qf.flush()
         if ("genetrees", dendropy.TreeList) in self.inputs():
             gf = tempfile.NamedTemporaryFile(delete=False )
+            print self.input_data["genetrees"]
             self.input_data["genetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
             args += ['-g', gf.name]
             gf.flush()

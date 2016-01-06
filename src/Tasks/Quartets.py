@@ -183,8 +183,8 @@ class SVDQuartetFrequencies(xylem.Task):
         
         taxon_namespace.sort(key=lambda x: x.label)
 
-        f = tempfile.NamedTemporaryFile()
-        
+        f = tempfile.NamedTemporaryFile(delete = False)
+
         dna.write_to_path(f.name + '.nex', 'nexus')
 
         import subprocess
@@ -192,6 +192,8 @@ class SVDQuartetFrequencies(xylem.Task):
         pp = os.path.dirname(__file__) + '/parse_paup.sh'
     
         out, err = subprocess.Popen(["bash", pp, f.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+
+
 
         lines = self.eliminate_header(out.split('\n'))
         lines = self.eliminate_footer(lines)

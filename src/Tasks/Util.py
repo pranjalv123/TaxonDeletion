@@ -57,15 +57,14 @@ class Head(xylem.Task):
         return self.result
 
 class Append(xylem.Task):
-    def desc(self):
-        return str(self.n)
     def inputs(self):
         return [('genetrees', dendropy.TreeList), ('genetrees_2', dendropy.TreeList)]
     def outputs(self):
         return [('genetrees', dendropy.TreeList)]
     def run(self):
         gt = self.input_data["genetrees"]
-        gt.append(self.input_data["genetrees_2"])
+        for t in self.input_data["genetrees_2"]:
+            gt.append(t)
         self.result = {'genetrees': gt}
         return self.result
 

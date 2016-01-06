@@ -160,7 +160,10 @@ class Task(object):
     def write_cache(self, cache=True, regen=False):
         cache &= self.cache
         if cache and self.storefile():
+            print "Writing to", self.storefile()
             self.write(self.storefile())
+        if self.storefile():
+            print "should have written to", self.storefile()
         
     def execute(self, cache=True, regen=False):
         self.get_cache(cache, regen)
@@ -176,7 +179,7 @@ class Task(object):
         self.result = self.run()
         print "Running", self, "took", time.time() - t0, "seconds"
         
-        self.write_cache
+        self.write_cache()
     
     # def execute(self, cache=True, regen=False):
     #     if self.regen:
