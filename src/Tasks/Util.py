@@ -67,7 +67,7 @@ class Append(xylem.Task):
         return [('genetrees', dendropy.TreeList)]
     def run(self):
         gt = self.input_data["genetrees"]
-        gt.append(self.input_data["genetrees_2"]
+        gt.append(self.input_data["genetrees_2"])
         self.result = {'genetrees': gt}
         return self.result
 
