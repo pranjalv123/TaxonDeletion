@@ -28,6 +28,7 @@ import StringIO
 import uuid
 import dendropy
 import sys
+import random
 
 class BootstrapGenes(xylem.Task):
     def setup(self, nreps):
@@ -43,7 +44,8 @@ class BootstrapGenes(xylem.Task):
         output = dendropy.DnaCharacterMatrix(taxon_namespace = mats[0].taxon_namespace)
         output.fill_taxa()
         for i in range(len(mats)):
-            output.extend_sequences(mats[i])
+            x = random.randint(0, len(mats) - 1)
+            output.extend_sequences(mats[x])
         self.result = {"alignments": [output]}
         return self.result
     
