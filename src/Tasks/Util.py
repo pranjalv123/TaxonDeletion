@@ -55,6 +55,21 @@ class Head(xylem.Task):
         gt = self.input_data["genetrees"]
         self.result = {'genetrees': gt[:min(self.n, len(gt))]}
         return self.result
-    
+
+class Append(xylem.Task):
+    def setup(self, n, *args, **kwargs):
+        self.n = n
+    def desc(self):
+        return str(self.n)
+    def inputs(self):
+        return [('genetrees', dendropy.TreeList), ('genetrees_2', dendropy.TreeList)]
+    def outputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def run(self):
+        gt = self.input_data["genetrees"]
+        gt.append(self.input_data["genetrees_2"]
+        self.result = {'genetrees': gt}
+        return self.result
+
     
     
