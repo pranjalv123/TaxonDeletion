@@ -44,7 +44,7 @@ class BootstrapGenes(xylem.Task):
 
         omats = []
         
-        for rep in range(nreps):
+        for rep in range(self.nreps):
             output = dendropy.DnaCharacterMatrix(taxon_namespace = mats[0].taxon_namespace)
             output.fill_taxa()
             for i in range(len(mats)):
