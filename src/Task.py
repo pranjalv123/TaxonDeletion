@@ -40,7 +40,7 @@ class Task(object):
         self.regen=kwargs.pop('regen', False)
         is_result=kwargs.pop('is_result', False)
                 
-        
+        self.result = None
         self.dependencies = set()
         self.depended = set()
         self.input_data = {}
@@ -148,7 +148,7 @@ class Task(object):
         regen &= self.regen
         if self.result:
             return True
-        if cache & (not regen) & self.storefile():
+        if cache and (not regen) and self.storefile():
             try:
                 self.result = self.read(self.storefile())
                 if self.result:
@@ -159,7 +159,7 @@ class Task(object):
 
     def write_cache(self, cache=True, regen=False):
         cache &= self.cache
-        if cache & self.storefile():
+        if cache and self.storefile():
             self.write(self.storefile())
         
     def execute(self, cache=True, regen=False):
