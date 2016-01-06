@@ -57,8 +57,6 @@ class Head(xylem.Task):
         return self.result
 
 class Append(xylem.Task):
-    def setup(self, n, *args, **kwargs):
-        self.n = n
     def desc(self):
         return str(self.n)
     def inputs(self):
