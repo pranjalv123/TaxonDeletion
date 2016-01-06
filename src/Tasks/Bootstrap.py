@@ -41,11 +41,16 @@ class BootstrapGenes(xylem.Task):
         return str(self.nreps)
     def run(self):
         mats = self.input_data["alignments"]
-        output = dendropy.DnaCharacterMatrix(taxon_namespace = mats[0].taxon_namespace)
-        output.fill_taxa()
-        for i in range(len(mats)):
-            x = random.randint(0, len(mats) - 1)
-            output.extend_sequences(mats[x])
-        self.result = {"alignments": [output]}
+
+        omats = []
+        
+        for rep in range(self.nreps):
+            output = dendropy.DnaCharacterMatrix(taxon_namespace = mats[0].taxon_namespace)
+            output.fill_taxa()
+            for i in range(len(mats)):
+                x = random.randint(0, len(mats) - 1)
+                output.extend_sequences(mats[x])
+            omats.append(output
+        self.result = {"alignments": omats}
         return self.result
     
