@@ -42,13 +42,20 @@ class RunFastTree(xylem.Task):
     
     def run(self):
         self.seqs = self.input_data["alignments"]
-        sio = StringIO.StringIO()
+        genetrees = dendropy.TreeList()
+
         for seq in self.seqs:
-            seq.write_to_stream(sio, schema="phylip", suppress_missing_taxa=True)
-        proc = subprocess.Popen(['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', '-n', str(len(self.seqs))], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        trees, err = proc.communicate(sio.getvalue())
-        print err
-        genetrees = dendropy.TreeList.get_from_string(trees, 'newick')
+            f = tempfile.NamedTemporaryFile(delete = False)
+            seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
+            f.close()
+            args = ['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', f.name]
+
+            print ' '.join(args)
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+            tree, err = proc.communicate()
+            print err
+            genetrees.append(dendropy.Tree.get_from_string(tree, 'newick'))
+
         self.result = {"genetrees":genetrees}
         return self.result
     
