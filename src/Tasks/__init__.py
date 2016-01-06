@@ -16,5 +16,6 @@ from Util import *
 from Writers import *
 from Quartets import *
 from Sequence import *
+from Bootstrap import *
 
 
