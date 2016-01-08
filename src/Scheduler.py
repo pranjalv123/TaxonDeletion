@@ -65,13 +65,18 @@ class SerialScheduler:
         self.pipelines = []
         self.scheduled = set()
     def schedule(self, task):
+        print task
+        print task.uid
+        print task.status()
         if task.uid in self.scheduled:
             return False
         #task.set_status("scheduled")
-        self.scheduled.add(task.uid)
         print "Scheduling", task
+        print "ADDING", task.uid, "TO QUEUE"
         self.queue.append(task)
         self.tasks[task.uid] = task
+        print "ADDING", task.uid, "TO SCHEDULED"
+        self.scheduled.add(task.uid)
         return True
         
     def add(self, plfun):
@@ -94,8 +99,9 @@ class SerialScheduler:
         while len(self.queue):
             task = self.queue.popleft()
             try:
+                print "trying", task
+                
                 task.execute(self.cache, self.regen)
-                self.current_pl.todot()
                 task.set_status("complete")
                 for t2 in task.allows():
                     t2.req_complete(task)
@@ -104,11 +110,13 @@ class SerialScheduler:
                         print t2, "ready"
                         if self.schedule(t2):
                             print "because we finished", str(task)
-
+                self.current_pl.todot()
+                
             except Task.DependenciesNotCompleteException:
                 for dep in task.dependencies:
                     if self.schedule(dep):
                         print "to enable", str(task)
+                print "ADDING", task.uid, "TO QUEUE"
                 self.queue.append(task)
 
 

@@ -92,7 +92,8 @@ class Task(object):
         return self.depended
 
     def req_complete(self, otherTask): #called when a task this depends on is complete
-
+        if self.status() == "complete":
+            return
         print otherTask.outputs()
         task_outputs = set(otherTask.outputs())
         
