@@ -58,6 +58,35 @@ class RunFastTree(xylem.Task):
 
         self.result = {"genetrees":genetrees}
         return self.result
+
+class RunRaxml(xylem.Task):
+    def inputs(self):
+        return [("alignments", (dendropy.DnaCharacterMatrix,))]
+    def outputs(self):
+        return [("genetrees", dendropy.TreeList)]
+    
+    def desc(self):
+        return ""
+    
+    def run(self):
+        self.seqs = self.input_data["alignments"]
+        genetrees = dendropy.TreeList()
+
+        for seq in self.seqs:
+            f = tempfile.NamedTemporaryFile(delete = False)
+            seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
+            f.close()
+            
+            args = ['raxml', '-m', 'GTRGAMMA', '-n', os.path.basename(f.name), '-p', '12345', '-s', f.name]
+
+            print ' '.join(args)
+            subprocess.Popen(args).wait()
+            genetrees.append(dendropy.Tree.get_from_path('RAxML_bestTree.' + os.path.basename(f.name), 'newick'))
+            l = [os.remove('RAxML_' + i + '.' + os.path.basename(f.name)) for i in ['parsimonyTree', 'log', 'result', 'info', 'bestTree']]
+
+        self.result = {"genetrees":genetrees}
+        return self.result
+
     
 class RunASTRID(xylem.Task):
     def setup(self, distmethod=None, *args, **kwargs):
