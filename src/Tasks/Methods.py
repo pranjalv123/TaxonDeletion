@@ -331,3 +331,23 @@ class RunSuperfine(xylem.Task):
                                             
         self.result = {"estimatedspeciestree":stree}
         return self.result
+
+
+class GetMRPMatrix(xylem.Task):
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("alignments", (dendropy.DnaCharacterMatrix,))]
+    def run(self):
+        gt = tempfile.NamedTemporaryFile(delete = False)
+        mat = tempfile.NamedTemporaryFile(delete = False)
+        self.input_data["genetrees"].write(path=gt.name, schema='newick')
+        gt.flush()
+        args = ("mrpmatrix " + gt.name + " " + mat.name + " phylip -dna").split(' ')
+        subprocess.Popen(args).wait()
+
+        alignment = dendropy.DnaCharacterMatrix.get_from_path(mat.name, 'phylip')
+
+        self.result = {"alignments":[alignment]}
+        return self.result
+        
