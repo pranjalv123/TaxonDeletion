@@ -56,6 +56,16 @@ class Head(xylem.Task):
         self.result = {'genetrees': gt[:min(self.n, len(gt))]}
         return self.result
 
+class GtreesToStree(xylem.Task):
+    def inputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def outputs(self):
+        return [('estimatedspeciestree', dendropy.Tree)]
+    def run(self):
+        self.result = {'estimatedspeciestree':self.input_data['genetrees'][0]}
+        return self.result
+    
+    
 class Append(xylem.Task):
     def inputs(self):
         return [('genetrees', dendropy.TreeList), ('genetrees_2', dendropy.TreeList)]
