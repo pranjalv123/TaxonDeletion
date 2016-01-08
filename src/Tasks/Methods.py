@@ -160,12 +160,13 @@ class RunWQMC(xylem.Task):
 
 
 class RunWastral(xylem.Task):
-    def setup(self, criterion='dp', score=False, exact=False, maximize=True):
+    def setup(self, criterion='dp', score=False, exact=False, maximize=True, extraTrees=False):
         self.criterion = {'dp':'DPTripartitionScorer', 'bs':'BryantSteelTripartitionScorer',
                           'rf':'RFTripartitionScorer'}[criterion]
         self.score = score
         self.exact = exact
         self.maximize = maximize
+        self.extraTrees = extraTrees
         self.inputs_ = set()
         self.outputs_ = set()
 
@@ -181,6 +182,8 @@ class RunWastral(xylem.Task):
             self.outputs_.add(("score", float))
         else:
             self.outputs_.add(("estimatedspeciestree", dendropy.Tree))
+        if extraTrees:
+            self.inputs_.add(("extragenetrees", dendropy.TreeList))
     def desc(self):
         d = self.criterion
         if self.score:
@@ -204,6 +207,12 @@ class RunWastral(xylem.Task):
             args += ['--maximize']
         else:
             args += ['--minimize']
+        if self.extraTrees:
+
+            gf = tempfile.NamedTemporaryFile(delete=False )
+            self.input_data["extragenetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            args += ['-e', gf.name]
+            gf.flush()
 
         if ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
             qf = tempfile.NamedTemporaryFile(delete=False )

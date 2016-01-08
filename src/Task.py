@@ -145,7 +145,7 @@ class Task(object):
 
     def get_cache(self, cache=True, regen=False):
         cache &= self.cache
-        regen &= self.regen
+        regen |= self.regen
         if self.result:
             return True
         if cache and (not regen) and self.storefile():
