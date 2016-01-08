@@ -179,8 +179,11 @@ class RunWastral(xylem.Task):
         else:
             args += ['--minimize']
         if self.extraTrees:
-            args += '-e'
-            args += self.input_data["extragenetrees"]
+
+            gf = tempfile.NamedTemporaryFile(delete=False )
+            self.input_data["extragenetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            args += ['-e', gf.name]
+            gf.flush()
 
         if ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
             qf = tempfile.NamedTemporaryFile(delete=False )
