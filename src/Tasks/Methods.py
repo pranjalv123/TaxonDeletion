@@ -160,13 +160,14 @@ class RunWQMC(xylem.Task):
 
 
 class RunWastral(xylem.Task):
-    def setup(self, criterion='dp', score=False, exact=False, maximize=True, extraTrees=False):
+    def setup(self, criterion='dp', score=False, exact=False, maximize=True, extraTrees=False, extraextra=False):
         self.criterion = {'dp':'DPTripartitionScorer', 'bs':'BryantSteelTripartitionScorer',
                           'rf':'RFTripartitionScorer'}[criterion]
         self.score = score
         self.exact = exact
         self.maximize = maximize
         self.extraTrees = extraTrees
+        self.extraextra = extraextra
         self.inputs_ = set()
         self.outputs_ = set()
 
@@ -214,6 +215,8 @@ class RunWastral(xylem.Task):
             args += ['-e', gf.name]
             gf.flush()
 
+        if self.extraextra:
+            args += ['--extraextra']
         if ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
             qf = tempfile.NamedTemporaryFile(delete=False )
             self.input_data["quartets"].write(qf, 'wqmc')
