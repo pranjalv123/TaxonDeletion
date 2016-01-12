@@ -108,8 +108,8 @@ class SerialScheduler:
                     print "allows", t2
                     if t2.status() == "ready":
                         print t2, "ready"
-                        if self.schedule(t2):
-                            print "because we finished", str(task)
+#                        if self.schedule(t2):
+#                            print "because we finished", str(task)
                 self.current_pl.todot()
                 
             except Task.DependenciesNotCompleteException:
