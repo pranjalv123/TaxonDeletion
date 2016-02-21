@@ -74,3 +74,33 @@ class WriteScore(xylem.Task):
         f.close()
         self.result = {}
         return self.result
+
+class WriteAttrs(xylem.Task):
+    def setup(self, location, desc, attrs):
+        self.path = location
+        self.description = desc
+        self.attrs = attrs
+        self.cache = False
+        self._is_result = True
+        f = open(location, 'a')
+        fcntl.lockf(f, fcntl.LOCK_EX)
+        if os.path.getsize(location) == 0:
+            f.write(','.join(attrs))
+        f.close()
+        
+    def desc(self):
+        return self.path + ':' + self.description
+    def inputs(self):
+        return [(i, float) for i in self.attrs]
+    def outputs(self):
+        return []
+    def run(self):
+        s = self.description + ',' + ','.join((self.input_data[i] for i in self.attrs))
+        
+        f = open(self.path, 'a')
+        fcntl.lockf(f, fcntl.LOCK_EX)
+        f.write(self.description + ',' + str(self.input_data['score']) + ',' + str(self.input_data['rfdistance']) + "," + str(self.input_data['time']))
+        f.write('\n')
+        f.close()
+        self.result = {}
+        return self.result
