@@ -1,5 +1,6 @@
 import dendropy
 import xylem.Task
+import os
 
 class WriteSpeciesTree(xylem.Task):
     def setup(self, location, *args, **kwargs):
