@@ -96,11 +96,11 @@ class WriteAttrs(xylem.Task):
     def outputs(self):
         return []
     def run(self):
-        s = self.description + ',' + ','.join((self.input_data[i] for i in self.attrs))
+        s = self.description + ',' + ','.join((str(self.input_data[i]) for i in self.attrs))
         
         f = open(self.path, 'a')
         fcntl.lockf(f, fcntl.LOCK_EX)
-        f.write(self.description + ',' + str(self.input_data['score']) + ',' + str(self.input_data['rfdistance']) + "," + str(self.input_data['time']))
+        f.write(s)
         f.write('\n')
         f.close()
         self.result = {}

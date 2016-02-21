@@ -98,6 +98,10 @@ class Task(object):
         task_outputs = set(otherTask.outputs())
         
         for item in self.inputs():
+            if item == "*":
+                for name, _ in task_outputs:
+                    self.input_data[name] = otherTask.get_results()[name]
+                continue
             name, tpe = item
             if type(tpe) == tuple:
                 if name not in self.input_data:
@@ -110,8 +114,8 @@ class Task(object):
                             self.input_data[name].append(otherTask.get_results()[name])
             else:
                 if item in task_outputs:
-                    self.input_data[name] = tpe( otherTask.get_results()[name])
-        
+                    self.input_data[name] = tpe( otherTask.get_results()[name])                
+            
         for i in self.dependencies:
             if i.status() != "complete":
                 return
@@ -271,8 +275,8 @@ class Task(object):
         pass
     #need to be implemented by children
     def run(self): #actually do the thing
-        pass
+        return {}
     def inputs(self): #returns a set of attributes it expects to see in its input
-        pass
+        return []
     def outputs(self): #returns a set of attributes it will have in its output
-        pass
+        return []

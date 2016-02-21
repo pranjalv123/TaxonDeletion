@@ -71,11 +71,8 @@ class SerialScheduler:
         if task.uid in self.scheduled:
             return False
         #task.set_status("scheduled")
-        print "Scheduling", task
-        print "ADDING", task.uid, "TO QUEUE"
         self.queue.append(task)
         self.tasks[task.uid] = task
-        print "ADDING", task.uid, "TO SCHEDULED"
         self.scheduled.add(task.uid)
         return True
         
@@ -90,9 +87,7 @@ class SerialScheduler:
             self.run_pl()
         
     def run_pl(self):
-        print "Running scheduler"
-        print "scheduled", self.scheduled
-        print "running", self.running
+
         if '--memdebug' in sys.argv:
             gc.set_debug(gc.DEBUG_STATS | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
 

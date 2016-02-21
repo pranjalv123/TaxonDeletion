@@ -128,6 +128,16 @@ class Const(xylem.Task):
     def run(self):
         self.result = {self.name:self.val}
         return self.result
-    
+
     
 
+class Echo(xylem.Task):
+    def setup(self, desc):
+        self.describe = desc
+    def inputs(self):
+        return ['*']
+    def run(self):
+        print self.describe
+        for name in self.input_data:
+            print name, '=', self.input_data[name]
+            print
