@@ -94,7 +94,7 @@ class WriteAttrs(xylem.Task):
         f = open(location, 'a')
         fcntl.lockf(f, fcntl.LOCK_EX)
         if os.path.getsize(location) == 0:
-            f.write('description' + ',' + ','.join(attrs))
+            f.write('description' + ',' + ','.join(self.attrs))
         f.close()
         
     def desc(self):
