@@ -80,7 +80,15 @@ class WriteAttrs(xylem.Task):
     def setup(self, location, desc, attrs):
         self.path = location
         self.description = desc
-        self.attrs = attrs
+        self.attrs = []
+        self.types = []
+        for i in attrs:
+            if type(i) is tuple:
+                self.attrs.append(i[0])
+                self.types.append(i[1])
+            else:
+                self.attrs.append(i)
+                self.types.append(float)
         self.cache = False
         self._is_result = True
         f = open(location, 'a')
@@ -92,7 +100,7 @@ class WriteAttrs(xylem.Task):
     def desc(self):
         return self.path + ':' + self.description
     def inputs(self):
-        return [(i, float) for i in self.attrs]
+        return zip(self.attrs, self.types)
     def outputs(self):
         return []
     def run(self):
