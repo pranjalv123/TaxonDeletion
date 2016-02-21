@@ -30,6 +30,7 @@ import ASTRID
 import dendropy
 import tempfile
 import os
+import time
 
 class RunFastTree(xylem.Task):
     def inputs(self):
