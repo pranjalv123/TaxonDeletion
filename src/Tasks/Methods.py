@@ -60,6 +60,8 @@ class RunFastTree(xylem.Task):
         return self.result
 
 class RunRaxml(xylem.Task):
+    def setup(self, model="GTRGAMMA"):
+        self.model = model
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -71,14 +73,13 @@ class RunRaxml(xylem.Task):
     def run(self):
         self.seqs = self.input_data["alignments"]
         genetrees = dendropy.TreeList()
-
+        
         for seq in self.seqs:
             f = tempfile.NamedTemporaryFile(delete = False)
             seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
             f.close()
             
-            args = ['raxml', '-m', 'GTRGAMMA', '-n', os.path.basename(f.name), '-p', '12345', '-s', f.name]
-
+            args = ['raxml', '-m', self.model, '-n', os.path.basename(f.name), '-p', '12345', '-s', f.name]
             print ' '.join(args)
             subprocess.Popen(args).wait()
             genetrees.append(dendropy.Tree.get_from_path('RAxML_bestTree.' + os.path.basename(f.name), 'newick'))
@@ -219,16 +220,18 @@ class RunWastral(xylem.Task):
             args += ['--extraextra']
         if ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
             qf = tempfile.NamedTemporaryFile(delete=False )
+            print "writing quartets"
             self.input_data["quartets"].write(qf, 'wqmc')
             args += ['-q', qf.name]
             qf.flush()
         if ("genetrees", dendropy.TreeList) in self.inputs():
             gf = tempfile.NamedTemporaryFile(delete=False )
-            print self.input_data["genetrees"]
+            print "writing", len(self.input_data["genetrees"]), "gene trees"
             self.input_data["genetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
             args += ['-g', gf.name]
             gf.flush()
         elif ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
+            print "writing quartets"
             gf = tempfile.NamedTemporaryFile(delete=False)
             gt = dendropy.simulate.star_tree(self.input_data["quartets"].tn)
             gt.resolve_polytomies()
@@ -248,6 +251,7 @@ class RunWastral(xylem.Task):
             gf.flush()
         if self.exact:
             args += ['-x']
+        args += ['-v', 'info']
         print ' '.join(args)
         print args
         proc = subprocess.Popen(args)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -384,10 +388,10 @@ class GetMRPMatrix(xylem.Task):
         mat = tempfile.NamedTemporaryFile(delete = False)
         self.input_data["genetrees"].write(path=gt.name, schema='newick')
         gt.flush()
-        args = ("mrpmatrix " + gt.name + " " + mat.name + " phylip -dna").split(' ')
+        args = ("mrpmatrix " + gt.name + " " + mat.name + " phylip ").split(' ')
         subprocess.Popen(args).wait()
 
-        alignment = dendropy.DnaCharacterMatrix.get_from_path(mat.name, 'phylip')
+        alignment = dendropy.StandardCharacterMatrix.get_from_path(mat.name, 'phylip')
 
         self.result = {"alignments":[alignment]}
         return self.result
