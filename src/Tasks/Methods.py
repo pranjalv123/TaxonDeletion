@@ -416,3 +416,36 @@ class RunMRPRatchet(xylem.Task):
                                             
         self.result = {"estimatedspeciestree":stree}
         return self.result
+
+
+class RunPlumist(xylem.Task):
+    def setup(self, timelimit=-1):
+        self.timelimit = timelimit
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("estimatedspeciestree", dendropy.Tree), ("extragenetrees", dendropy.TreeList)]
+
+    def run(self):
+        f = tempfile.NamedTemporaryFile()
+        gt = self.input_data["genetrees"]
+        gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
+        gt.write(path=f.name, schema='newick', suppress_edge_lengths=True)
+        st = tempfile.NamedTemporaryFile()
+        args = ['plumist.py', '-s', f.name, '-o', st.name]
+        print ' '.join(args)
+        proc = subprocess.Popen(args)
+
+        if self.timelimit == -1:
+            proc.wait()
+        else:
+            t = time.time()
+            while (proc.poll() is None) and (time.time() - t < self.timelimit):
+                time.sleep(1)
+        
+        etrees = dendropy.TreeList.get_from_path(st.name + '.trees', 'newick')
+        
+        
+        self.result = {"estimatedspeciestree":stree, "extragenetrees":etrees}
+        return self.result
+
