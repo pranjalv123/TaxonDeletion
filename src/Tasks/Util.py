@@ -123,7 +123,7 @@ class Const(xylem.Task):
             self.tpe = tpe
     def inputs(self):
         return []
-    def output(self):
+    def outputs(self):
         return [(self.name, self.tpe)]
     def run(self):
         self.result = {self.name:self.val}
