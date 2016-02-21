@@ -78,5 +78,19 @@ class Append(xylem.Task):
         self.result = {'genetrees': gt}
         return self.result
 
+class Const(xylem.Task):
+    def setup(self, name, val, tpe=None):
+        self.val = val
+        self.tpe = type(val)
+        self.name = name
+        if tpe:
+            self.tpe = tpe
+    def inputs(self):
+        return []
+    def output(self):
+        return [(self.name, self.tpe)]
+    def run(self):
+        self.result = {self.name:self.val}
+        return self.result
     
     
