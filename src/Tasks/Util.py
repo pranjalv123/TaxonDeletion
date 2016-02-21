@@ -78,5 +78,37 @@ class Append(xylem.Task):
         self.result = {'genetrees': gt}
         return self.result
 
-    
-    
+class RemoveBigPolytomies(xylem.Task):
+    def setup(self, n):
+        self.n = n
+    def inputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def outputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def run(self):
+        tl = self.input_data['genetrees']
+        output = dendropy.TreeList(taxon_namespace = tl.taxon_namespace)
+        for t in tl:
+            if max([len(i.child_nodes()) for i in t.internal_nodes()]) < self.n:
+                output.append(t)
+        self.result = {'genetrees':output}
+        return self.result
+
+class ResolveBigPolytomies(xylem.Task):
+    def setup(self, n):
+        self.n = n
+    def inputs(self):
+        return [('genetrees', dendropy.TreeList)]
+    def outputs(self):
+        return [('genetrees', dendropy.TreeList)]
+
+
+    def run(self):
+        tl = self.input_data['genetrees']
+        output = dendropy.TreeList(taxon_namespace = tl.taxon_namespace)
+        
+        for t in tl:
+            t.resolve_polytomies(limit=self.n)
+        self.result = {'genetrees':tl}
+        return self.result
+
