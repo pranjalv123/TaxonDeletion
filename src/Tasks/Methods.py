@@ -443,8 +443,15 @@ class RunPlumist(xylem.Task):
             t = time.time()
             while (proc.poll() is None) and (time.time() - t < self.timelimit):
                 time.sleep(1)
+            proc.kill()
         
         etrees = dendropy.TreeList.get_from_path(st.name + '.trees', 'newick')
+        try:
+            stree = dendropy.TreeList.get_from_path(st.name + '.tree', 'newick')
+        except Exception as e:
+            print e
+            stree = etrees[-1]
+        
         
         
         self.result = {"estimatedspeciestree":stree, "extragenetrees":etrees}
