@@ -60,10 +60,10 @@ class Pipeline:
             for i in t.inputs():
                 good = False
                 for d in t.depends():
-                    if i in d.outputs():
+                    if i in d.outputs() or i == '*':
                         good = True
                 if not good:
-                    print "Not found:", t, i
+                    print "Dependency not found:", t, i
                     print '\n'.join([':'.join([str(d), str(d.outputs())]) for d in t.depends()])
                     return False
         return True
@@ -83,7 +83,8 @@ class Pipeline:
             subprocess.Popen(['dot', fname, '-Tpng', '-O'])
     def ready(self, cache=True, regen=False):
         self.todot()
-        self.verify()
+        if not self.verify():
+            return False
         for task in self.tasks:
             if task.is_result():
                 self.scheduler.schedule(task)

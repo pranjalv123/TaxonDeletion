@@ -392,3 +392,23 @@ class GetMRPMatrix(xylem.Task):
         self.result = {"alignments":[alignment]}
         return self.result
         
+class RunMRPRatchet(xylem.Task):
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("estimatedspeciestree", dendropy.Tree)]    
+    def run(self):
+        f = tempfile.NamedTemporaryFile()
+        gt = self.input_data["genetrees"]
+        gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
+        gt.write(path=f.name, schema='newick', suppress_edge_lengths=True)
+        st = tempfile.NamedTemporaryFile()
+        args = ['superfine', f.name, st.name, self.reconciler]
+        print args
+        proc = subprocess.Popen(args)
+        proc.wait()
+        
+        stree = dendropy.Tree.get_from_path(st.name,'newick')
+                                            
+        self.result = {"estimatedspeciestree":stree}
+        return self.result
