@@ -61,8 +61,9 @@ class RunFastTree(xylem.Task):
         return self.result
 
 class RunRaxml(xylem.Task):
-    def setup(self, model="GTRGAMMA"):
+    def setup(self, model="GTRGAMMA", complete=False):
         self.model = model
+        self.complete = complete
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -85,7 +86,9 @@ class RunRaxml(xylem.Task):
             subprocess.Popen(args).wait()
             genetrees.append(dendropy.Tree.get_from_path('RAxML_result.' + os.path.basename(f.name), 'newick'))
             l = [os.remove('RAxML_' + i + '.' + os.path.basename(f.name)) for i in ['parsimonyTree', 'log', 'result', 'info', 'bestTree']]
-
+            
+        if self.complete:
+            assert(len(genetrees[0].leaf_nodes()) == len(genetrees.taxon_namespace))
         self.result = {"genetrees":genetrees}
         return self.result
 
@@ -162,7 +165,7 @@ class RunWQMC(xylem.Task):
 
 
 class RunWastral(xylem.Task):
-    def setup(self, criterion='dp', score=False, exact=False, maximize=True, extraTrees=False, extraextra=False):
+    def setup(self, criterion='dp', score=False, exact=False, maximize=True, extraTrees=False, extraextra=False, enhance=0):
         self.criterion = {'dp':'DPTripartitionScorer', 'bs':'BryantSteelTripartitionScorer',
                           'rf':'RFTripartitionScorer'}[criterion]
         self.score = score
@@ -187,6 +190,8 @@ class RunWastral(xylem.Task):
             self.outputs_.add(("estimatedspeciestree", dendropy.Tree))
         if extraTrees:
             self.inputs_.add(("extragenetrees", dendropy.TreeList))
+
+        self.enhance = enhance
     def desc(self):
         d = self.criterion
         if self.score:
@@ -195,6 +200,8 @@ class RunWastral(xylem.Task):
             d += ' exact '
         if self.maximize:
             d += ' max '
+        if self.enhance:
+            d += ' enhance ' + str(self.enhance) + ' '
         return d
     def inputs(self):
         return list(self.inputs_)
@@ -210,6 +217,8 @@ class RunWastral(xylem.Task):
             args += ['--maximize']
         else:
             args += ['--minimize']
+        if self.enhance:
+            args += ['--enhance', str(self.enhance)]
         if self.extraTrees:
 
             gf = tempfile.NamedTemporaryFile(delete=False )
