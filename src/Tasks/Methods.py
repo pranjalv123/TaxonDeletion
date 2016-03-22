@@ -83,7 +83,7 @@ class RunRaxml(xylem.Task):
             args = ['raxml', '-m', self.model, '-n', os.path.basename(f.name), '-p', '12345', '-s', f.name]
             print ' '.join(args)
             subprocess.Popen(args).wait()
-            genetrees.append(dendropy.Tree.get_from_path('RAxML_bestTree.' + os.path.basename(f.name), 'newick'))
+            genetrees.append(dendropy.Tree.get_from_path('RAxML_result.' + os.path.basename(f.name), 'newick'))
             l = [os.remove('RAxML_' + i + '.' + os.path.basename(f.name)) for i in ['parsimonyTree', 'log', 'result', 'info', 'bestTree']]
 
         self.result = {"genetrees":genetrees}
