@@ -173,6 +173,7 @@ class RunWastral(xylem.Task):
         self.maximize = maximize
         self.extraTrees = extraTrees
         self.extraextra = extraextra
+        self.enhance = enhance
         self.inputs_ = set()
         self.outputs_ = set()
 
@@ -191,7 +192,7 @@ class RunWastral(xylem.Task):
         if extraTrees:
             self.inputs_.add(("extragenetrees", dendropy.TreeList))
 
-        self.enhance = enhance
+
     def desc(self):
         d = self.criterion
         if self.score:
