@@ -47,8 +47,17 @@ class CompareTrees(xylem.Task):
         estimatedtree = self.input_data["estimatedspeciestree"]
         tn = estimatedtree.taxon_namespace
         truetree.migrate_taxon_namespace(tn)
+        truetree.update_bipartitions()
+        estimatedtree.update_bipartitions()
         diff = dendropy.calculate.treecompare.false_positives_and_negatives(truetree, estimatedtree)[0]
-#        print diff, len(truetree.internal_edges())
+        print len(truetree.encode_bipartitions())
+        print len(estimatedtree.encode_bipartitions())
+        print len(truetree.leaf_nodes())
+        print len(estimatedtree.leaf_nodes())
+
+        print dendropy.calculate.treecompare.false_positives_and_negatives(truetree, estimatedtree)
+        print dendropy.calculate.treecompare.symmetric_difference(truetree, estimatedtree)
+        print diff, len(truetree.internal_edges())
         self.result ={"rfdistance":diff/float(len(truetree.internal_edges()))}
         if self.outputfile:
             open(self.outputfile, 'a').write(self.tag + ',' + str(diff) + '\n')

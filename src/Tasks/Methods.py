@@ -164,7 +164,7 @@ class RunWQMC(xylem.Task):
 class RunWastral(xylem.Task):
     def setup(self, criterion='dp', score=False, exact=False, maximize=True, extraTrees=False, extraextra=False):
         self.criterion = {'dp':'DPTripartitionScorer', 'bs':'BryantSteelTripartitionScorer',
-                          'rf':'RFTripartitionScorer'}[criterion]
+                          'rf':'RFTripartitionScorer', 'fastrf':'FastRF'}[criterion]
         self.score = score
         self.exact = exact
         self.maximize = maximize
@@ -175,7 +175,7 @@ class RunWastral(xylem.Task):
 
         if criterion == 'dp' or criterion == 'bs':
             self.inputs_.add(("quartets", Quartets.WeightedQuartetSet))
-        elif criterion == 'rf':
+        elif criterion == 'rf' or criterion=='fastrf':
             self.inputs_.add(("genetrees", dendropy.TreeList))
 
         if not (exact or score):
@@ -380,6 +380,8 @@ class RunSuperfine(xylem.Task):
 
 
 class GetMRPMatrix(xylem.Task):
+    def setup(self, dna=False):
+        self.dna = dna
     def inputs(self):
         return [("genetrees", dendropy.TreeList)]
     def outputs(self):
@@ -390,9 +392,14 @@ class GetMRPMatrix(xylem.Task):
         self.input_data["genetrees"].write(path=gt.name, schema='newick')
         gt.flush()
         args = ("mrpmatrix " + gt.name + " " + mat.name + " phylip ").split(' ')
+        if self.dna:
+            args.append('-dna')
         subprocess.Popen(args).wait()
 
-        alignment = dendropy.StandardCharacterMatrix.get_from_path(mat.name, 'phylip')
+        if self.dna:
+            alignment = dendropy.DnaCharacterMatrix.get_from_path(mat.name, 'phylip')
+        else:
+            alignment = dendropy.StandardCharacterMatrix.get_from_path(mat.name, 'phylip')
 
         self.result = {"alignments":[alignment]}
         return self.result
@@ -443,7 +450,11 @@ class RunPlumist(xylem.Task):
             t = time.time()
             while (proc.poll() is None) and (time.time() - t < self.timelimit):
                 time.sleep(1)
-            proc.kill()
+
+            try:
+                proc.kill()
+            except:
+                pass
         
         etrees = dendropy.TreeList.get_from_path(st.name + '.trees', 'newick')
         try:
