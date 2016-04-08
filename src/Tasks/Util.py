@@ -155,3 +155,33 @@ class Echo(xylem.Task):
         for name in self.input_data:
             print name, '=', self.input_data[name]
             print
+
+class TimedTask(xylem.Task):
+    def setup(self, task, label="time"):
+        self.task = task
+        self.label = label
+        self.dependencies = self.task.dependencies
+        self.task.dependencies = set()
+        self.depended = self.task.depended
+        self.task.depended = set()
+        self._is_result = self.task._is_result
+        self.local = self.task.local
+        self.cachefile = self.task.cachefile
+        self.task.cachefile = None
+
+    def desc(self):
+        return "Timed " + self.task.desc()
+    def inputs(self):
+        return self.task.inputs()
+    def outputs(self):
+        o = self.task.outputs()
+        o.append((self.label, float))
+        return o
+    def run(self):
+        t = time.time()
+        self.task.input_data = self.input_data
+        self.result = self.task.run()
+        self.result[self.label] = time.time() - t
+        return self.result
+
+
