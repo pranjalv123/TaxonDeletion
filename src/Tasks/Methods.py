@@ -1,3 +1,4 @@
+
 """
 Xylem - Phylogenetic Pipelines with MPI
 
@@ -75,7 +76,7 @@ class RunRaxml(xylem.Task):
     def run(self):
         self.seqs = self.input_data["alignments"]
         genetrees = dendropy.TreeList()
-        
+
         for seq in self.seqs:
             f = tempfile.NamedTemporaryFile(delete = False)
             seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)

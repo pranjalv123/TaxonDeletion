@@ -62,6 +62,10 @@ class GtreesToStree(xylem.Task):
     def outputs(self):
         return [('estimatedspeciestree', dendropy.Tree)]
     def run(self):
+        print self.input_data
+        print len(self.input_data['genetrees'])
+        for t in self.input_data['genetrees']:
+            print "LEN:", len(t.leaf_nodes())
         self.result = {'estimatedspeciestree':self.input_data['genetrees'][0]}
         return self.result
     

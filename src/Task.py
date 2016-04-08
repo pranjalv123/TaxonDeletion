@@ -156,7 +156,7 @@ class Task(object):
         if cache and (not regen) and self.storefile():
             try:
                 t0 = time.time()
-                print "Trying to read cache of", self
+                print "Trying to read cache of", self, "from", self.storefile()
                 self.result = self.read(self.storefile())
                 if self.result:
                     print "Reading cache of", self, "took", time.time() - t0, "seconds"
