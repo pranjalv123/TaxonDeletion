@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import dendropy
 import xylem.Task
+import time
 
 class CastName(xylem.Task):
     def setup(self, inname, outname, tpe, *args, **kwargs):
