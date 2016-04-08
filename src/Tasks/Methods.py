@@ -473,9 +473,34 @@ class RunPlumist(xylem.Task):
         except Exception as e:
             print e
             stree = etrees[-1]
-        
-        
-        
+                
         self.result = {"estimatedspeciestree":stree, "extragenetrees":etrees}
+        return self.result
+
+
+        
+class RunTreeCompleter(xylem.Task):
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList), ("completetree", dendropy.Tree)]
+    def outputs(self):
+        return [("genetrees", dendropy.TreeList)]    
+    def run(self):
+        f = tempfile.NamedTemporaryFile()
+        gt = self.input_data["genetrees"]
+        gt.write(stream=f, schema='newick', suppress_edge_lengths=True)
+        
+        st = self.input_data["completetree"]
+        st.write(stream=f, schema='newick', suppress_edge_lengths=True)
+        
+        output = tempfile.NamedTemporaryFile()
+        
+        args = ['tree_completer2.py', f.name, output.name]
+
+        proc = subprocess.Popen(args)
+        proc.wait()
+        
+        completed = dendropy.TreeList.get_from_path(output.name,'newick')
+                                            
+        self.result = {"genetrees":completed}
         return self.result
 
