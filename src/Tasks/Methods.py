@@ -118,12 +118,12 @@ class RunASTRID(xylem.Task):
         return self.result
 
 class RunASTRAL(xylem.Task):
-    def setup(self, *args, **kwargs):
+    def setup(self, extraTrees = False):
         pass
     def desc(self):
         return ""
     def inputs(self):
-        return [("genetrees", dendropy.TreeList)]
+        return [("genetrees", dendropy.TreeList), ("extragenetrees", dendropy.TreeList)]
     def outputs(self):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
@@ -133,7 +133,16 @@ class RunASTRAL(xylem.Task):
         gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
         gt.write(path=f.name, schema='newick')
         print "ASTRAL", "-i", f.name
-        proc = subprocess.Popen(['ASTRAL', '-i', f.name], stdout=subprocess.PIPE)
+        args = ['ASTRAL', '-i', f.name]
+        if self.extraTrees:
+            f = tempfile.NamedTemporaryFile()
+            gt = self.input_data["extragenetrees"]
+            gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
+            gt.write(path=f.name, schema='newick')
+            args += ['-e', f.name]
+            
+        print " ".join(args)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE)
         streestr, err = proc.communicate()
         print err
         print streestr
