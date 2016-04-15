@@ -37,6 +37,7 @@ class Concatenate(xylem.Task):
         output = dendropy.DnaCharacterMatrix(taxon_namespace = mats[0].taxon_namespace)
         output.fill_taxa()
         for mat in mats:
+            mat.fill('-')
             output.extend_sequences(mat)
         self.result = {"alignments": [output]}
         return self.result
