@@ -32,8 +32,18 @@ import dendropy
 import tempfile
 import os
 import time
+import multiprocessing
 
 class RunFastTree(xylem.Task):
+    def setup(self, parallelism=None):
+        if parallelism == "auto":
+            if 'PBS_NUM_PPN' in os.environ:
+                self.parallelism = os.environ['PBS_NUM_PPN']
+            else:
+                self.parallelism = multiprocessing.cpu_count()
+        elif parallelism == None:
+            self.parallelism = 1
+        
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -41,23 +51,27 @@ class RunFastTree(xylem.Task):
     
     def desc(self):
         return ""
+
+    def estimate_tree(self, seq):
+        f = tempfile.NamedTemporaryFile(delete = False)
+        seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
+        f.close()
+        args = ['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', f.name]
+        
+        print ' '.join(args)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        tree, err = proc.communicate()
+        print err
+        return dendropy.Tree.get_from_string(tree, 'newick')
+        
     
     def run(self):
         self.seqs = self.input_data["alignments"]
-        genetrees = dendropy.TreeList()
 
-        for seq in self.seqs:
-            f = tempfile.NamedTemporaryFile(delete = False)
-            seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
-            f.close()
-            args = ['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', f.name]
+        pool = multiprocessing.Pool(self.parallelism)
 
-            print ' '.join(args)
-            proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-            tree, err = proc.communicate()
-            print err
-            genetrees.append(dendropy.Tree.get_from_string(tree, 'newick'))
-
+        genetrees = pool.map(self.estimate_tree, seqs)
+        
         self.result = {"genetrees":genetrees}
         return self.result
 
