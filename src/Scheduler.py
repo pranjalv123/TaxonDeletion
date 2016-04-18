@@ -68,6 +68,7 @@ class SerialScheduler:
         if task.uid in self.scheduled:
             return False
         #task.set_status("scheduled")
+
         self.queue.append(task)
         self.tasks[task.uid] = task
         self.scheduled.add(task.uid)
@@ -90,6 +91,7 @@ class SerialScheduler:
 
         while len(self.queue):
             task = self.queue.popleft()
+
             try:
 
                 

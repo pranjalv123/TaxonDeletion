@@ -119,11 +119,14 @@ class RunASTRID(xylem.Task):
 
 class RunASTRAL(xylem.Task):
     def setup(self, extraTrees = False):
-        pass
+        self.extraTrees = extraTrees
+
     def desc(self):
         return ""
     def inputs(self):
-        return [("genetrees", dendropy.TreeList), ("extragenetrees", dendropy.TreeList)]
+        if self.extraTrees:
+            return [("genetrees", dendropy.TreeList), ("extragenetrees", dendropy.TreeList)]
+        return [("genetrees", dendropy.TreeList)]
     def outputs(self):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
@@ -132,8 +135,8 @@ class RunASTRAL(xylem.Task):
         gt = self.input_data["genetrees"]
         gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
         gt.write(path=f.name, schema='newick')
-        print "ASTRAL", "-i", f.name
-        args = ['ASTRAL', '-i', f.name]
+
+        args = ['ASTRAL', '-i', f.name, '-t', '1']
         if self.extraTrees:
             f = tempfile.NamedTemporaryFile()
             gt = self.input_data["extragenetrees"]

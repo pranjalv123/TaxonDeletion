@@ -27,6 +27,7 @@ import subprocess
 import StringIO
 import uuid
 import time
+import traceback
 
 class DependenciesNotCompleteException(Exception):
     pass
@@ -34,6 +35,8 @@ class DependenciesNotCompleteException(Exception):
 class Task(object):
     cachefile_set = {}
     def __init__(self, *args, **kwargs):
+        self.stackframe = traceback.extract_stack()
+
         cachefile=kwargs.pop('cachefile', None)
         local=kwargs.pop('local', False)
         cache=kwargs.pop('cache', True)

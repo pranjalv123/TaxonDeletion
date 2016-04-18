@@ -25,6 +25,7 @@ import cPickle
 import sys
 from collections import defaultdict
 import subprocess
+import traceback
 
 colormap = defaultdict(lambda : "black")
 colormap['waiting']='red'
@@ -45,18 +46,24 @@ def stylemap(task):
 class Pipeline:
     def __init__(self, scheduler, desc):
         self.tasks = []
+        self.task_set = set()
         self.scheduler = scheduler
         self.desc = desc
     def add_task(self, task):
+        if task in self.task_set:
+            return task
+
         self.tasks.append(task)
+        self.task_set.add(task)
         return task
     def verify(self):
         for t in self.tasks:
             if t.outputs() == None:
                 print t, "has invalid outputs()"
+                print traceback.format_list(t.stackframe)
             if t.inputs() == None:
                 print t, "has invalid inputs()"
-
+                print traceback.format_list(t.stackframe)
             for i in t.inputs():
                 good = False
                 for d in t.depends():
@@ -65,6 +72,7 @@ class Pipeline:
                 if not good:
                     print "Dependency not found:", t, i
                     print '\n'.join([':'.join([str(d), str(d.outputs())]) for d in t.depends()])
+                    print ''.join(traceback.format_list(t.stackframe))
                     return False
         return True
     def prune(self):
