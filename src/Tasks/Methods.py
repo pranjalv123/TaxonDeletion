@@ -133,21 +133,24 @@ class RunASTRID(xylem.Task):
 
 class RunASTRAL(xylem.Task):
     def setup(self, extraTrees = False):
-        pass
+        self.extraTrees = extraTrees
+
     def desc(self):
         return ""
     def inputs(self):
-        return [("genetrees", dendropy.TreeList), ("extragenetrees", dendropy.TreeList)]
+        if self.extraTrees:
+            return [("genetrees", dendropy.TreeList), ("extragenetrees", dendropy.TreeList)]
+        return [("genetrees", dendropy.TreeList)]
     def outputs(self):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
         print "RUNNING ASTRAL"
-        f = tempfile.NamedTemporaryFile()
+        f = tempfile.NamedTemporaryFile(delete=False)
         gt = self.input_data["genetrees"]
         gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
         gt.write(path=f.name, schema='newick')
-        print "ASTRAL", "-i", f.name
-        args = ['ASTRAL', '-i', f.name]
+
+        args = ['ASTRAL', '-i', f.name, '-t', '1']
         if self.extraTrees:
             f = tempfile.NamedTemporaryFile()
             gt = self.input_data["extragenetrees"]
@@ -510,14 +513,21 @@ class RunTreeCompleter(xylem.Task):
     def run(self):
         f = tempfile.NamedTemporaryFile()
         gt = self.input_data["genetrees"]
-        gt.write(stream=f, schema='newick', suppress_edge_lengths=True)
+        gt.write_to_stream(f, schema='newick', suppress_edge_lengths=True)
         
         st = self.input_data["completetree"]
-        st.write(stream=f, schema='newick', suppress_edge_lengths=True)
+        st.write_to_stream(f, schema='newick', suppress_edge_lengths=True)
+        
+        print "gene trees:", len(gt)
+        print st
+        
+        f.flush()
         
         output = tempfile.NamedTemporaryFile()
         
         args = ['tree_completer2.py', f.name, output.name]
+        
+        print ' '.join(args)
 
         proc = subprocess.Popen(args)
         proc.wait()

@@ -61,12 +61,16 @@ class ReadGeneTrees(xylem.Task):
     def outputs(self):
         return [("genetrees", dendropy.TreeList)]
     def run(self):
-        trees = dendropy.TreeList.get_from_path(self.path, "newick")
-        print "read", len(trees), "gene trees with", len(trees.taxon_namespace), "taxa from", self.path
+
         if self.limit > 0:
-            self.result= {"genetrees": trees[:self.limit]}
+            trees = dendropy.TreeList()
+            for line in open(self.path).readlines()[:self.limit]:
+                trees.append(dendropy.Tree.get_from_string(line, 'newick'))
         else:
-            self.result= {"genetrees": trees}
+            trees = dendropy.TreeList.get_from_path(self.path, "newick")
+
+        print "read", len(trees), "gene trees with", len(trees.taxon_namespace), "taxa from", self.path
+        self.result= {"genetrees": trees}
         return self.result
 
 
