@@ -77,7 +77,7 @@ class WriteScore(xylem.Task):
         return self.result
 
 class WriteAttrs(xylem.Task):
-    def setup(self, location, desc, attrs):
+    def setup(self, location, desc, attrs, consts = {}):
         self.path = location
         self.description = desc
         self.attrs = []
@@ -96,15 +96,18 @@ class WriteAttrs(xylem.Task):
         if os.path.getsize(location) == 0:
             f.write('description' + ',' + ','.join(self.attrs) + '\n')
         f.close()
+        self.consts = consts
         
     def desc(self):
         return self.path + ':' + self.description
     def inputs(self):
-        return zip(self.attrs, self.types)
+        return [i for i in zip(self.attrs, self.types) if i[0] not in self.consts]
     def outputs(self):
         return []
     def run(self):
-        s = self.description + ',' + ','.join((str(self.input_data[i]) for i in self.attrs))
+        self.consts.update(self.input_data)
+
+        s = self.description + ',' + ','.join((str(self.consts[i]) for i in self.attrs))
         
         f = open(self.path, 'a')
         fcntl.lockf(f, fcntl.LOCK_EX)

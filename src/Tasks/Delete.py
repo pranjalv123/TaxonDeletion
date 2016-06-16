@@ -79,6 +79,8 @@ class DeleteTaxaUniform(xylem.Task):
         if self.stree:
             st.prune_taxa(deletion_list)
             self.result['speciestree'] = st
+        for t in deletion_list:
+            tn.remove_taxon(t)
         return self.result
     
 class DeleteTaxaRandom(xylem.Task):

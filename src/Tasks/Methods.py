@@ -34,11 +34,27 @@ import os
 import time
 import multiprocessing
 
+
+def estimate_tree(seq):
+    f = tempfile.NamedTemporaryFile(delete = False)
+    seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
+    f.close()
+    args = ['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', f.name]
+    
+    print ' '.join(args)
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    tree, err = proc.communicate()
+    print err
+    return dendropy.Tree.get_from_string(tree, 'newick')
+        
+
+
+
 class RunFastTree(xylem.Task):
     def setup(self, parallelism=None):
         if parallelism == "auto":
             if 'PBS_NUM_PPN' in os.environ:
-                self.parallelism = os.environ['PBS_NUM_PPN']
+                self.parallelism = int(os.environ['PBS_NUM_PPN'])
             else:
                 self.parallelism = multiprocessing.cpu_count()
         elif parallelism == None:
@@ -52,25 +68,13 @@ class RunFastTree(xylem.Task):
     def desc(self):
         return ""
 
-    def estimate_tree(self, seq):
-        f = tempfile.NamedTemporaryFile(delete = False)
-        seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
-        f.close()
-        args = ['fasttree', '-nt', '-gtr', '-nopr', '-quiet', '-gamma', f.name]
-        
-        print ' '.join(args)
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-        tree, err = proc.communicate()
-        print err
-        return dendropy.Tree.get_from_string(tree, 'newick')
-        
     
     def run(self):
         self.seqs = self.input_data["alignments"]
 
         pool = multiprocessing.Pool(self.parallelism)
 
-        genetrees = pool.map(self.estimate_tree, seqs)
+        genetrees = pool.map(estimate_tree, self.seqs)
         
         self.result = {"genetrees":genetrees}
         return self.result
@@ -121,14 +125,21 @@ class RunASTRID(xylem.Task):
     def outputs(self):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
-        a = ASTRID.ASTRID(self.input_data["genetrees"])
-        print a
-        print self.input_data["genetrees"]
-        a.run(self.distmethod)
-        self.result = {"estimatedspeciestree": a.tree}
-        print a.tree
-        print type(a.tree)
-        del(a)
+        print "RUNNING ASTRAL"
+        f = tempfile.NamedTemporaryFile(delete=False)
+        g = tempfile.NamedTemporaryFile(delete=False)
+        gt = self.input_data["genetrees"]
+        gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
+        gt.write(path=f.name, schema='newick')
+
+        args = ['ASTRID', '-i', f.name, '-o', g.name ]
+            
+        print " ".join(args)
+        proc = subprocess.Popen(args)
+        proc.communicate()
+        del(proc)
+        stree = dendropy.Tree.get_from_path(g.name, 'newick')
+        self.result = {"estimatedspeciestree": stree}
         return self.result
 
 class RunASTRAL(xylem.Task):
@@ -250,7 +261,7 @@ class RunWastral(xylem.Task):
         if self.extraTrees:
 
             gf = tempfile.NamedTemporaryFile(delete=False )
-            self.input_data["extragenetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            self.input_data["extragenetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True, suppress_internal_node_labels=True)
             args += ['-e', gf.name]
             gf.flush()
 
@@ -265,7 +276,7 @@ class RunWastral(xylem.Task):
         if ("genetrees", dendropy.TreeList) in self.inputs():
             gf = tempfile.NamedTemporaryFile(delete=False )
             print "writing", len(self.input_data["genetrees"]), "gene trees"
-            self.input_data["genetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            self.input_data["genetrees"].write_to_path(gf.name, 'newick', suppress_edge_lengths=True, suppress_internal_node_labels=True)
             args += ['-g', gf.name]
             gf.flush()
         elif ("quartets", Quartets.WeightedQuartetSet) in self.inputs():
@@ -273,7 +284,7 @@ class RunWastral(xylem.Task):
             gf = tempfile.NamedTemporaryFile(delete=False)
             gt = dendropy.simulate.star_tree(self.input_data["quartets"].tn)
             gt.resolve_polytomies()
-            gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True, suppress_internal_node_labels=True)
             args += ['-g', gf.name]
             gf.flush()
         if self.score:
@@ -281,7 +292,7 @@ class RunWastral(xylem.Task):
             print self.inputs()
             print self.input_data
             gt = self.input_data["estimatedspeciestree"]
-            gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True)
+            gt.write_to_path(gf.name, 'newick', suppress_edge_lengths=True , suppress_internal_node_labels=True)
             print "SCORING TREE:", str(gt)
             print (open(gf.name).read())
             args += ['-s', gf.name]

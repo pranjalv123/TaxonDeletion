@@ -63,13 +63,26 @@ class GtreesToStree(xylem.Task):
     def outputs(self):
         return [('estimatedspeciestree', dendropy.Tree)]
     def run(self):
-        print self.input_data
         print len(self.input_data['genetrees'])
         for t in self.input_data['genetrees']:
             print "LEN:", len(t.leaf_nodes())
         self.result = {'estimatedspeciestree':self.input_data['genetrees'][0]}
         return self.result
-    
+
+class StreeToGtrees(xylem.Task):
+    def setup(self, inname='estimatedspeciestree', outname='genetrees'):
+        self.inname = inname
+        self.outname = outname
+    def outputs(self):
+        return [(self.outname, dendropy.TreeList)]
+    def inputs(self):
+        return [(self.inname, dendropy.Tree)]
+    def run(self):
+        tl = dendropy.TreeList()
+        tl.append(self.input_data[self.inname])
+        self.result = {self.outname:tl}
+        return self.result 
+   
     
 class Append(xylem.Task):
     def setup(self, singletree=False):
@@ -147,15 +160,20 @@ class Const(xylem.Task):
     
 
 class Echo(xylem.Task):
-    def setup(self, desc):
-        self.describe = desc
+    def setup(self, name, tpe):
+        self.tpe = tpe
+        self.name = name
     def inputs(self):
-        return ['*']
+        return [(self.name, self.tpe)]
     def run(self):
-        print self.describe
-        for name in self.input_data:
-            print name, '=', self.input_data[name]
-            print
+        if self.tpe == (dendropy.DnaCharacterMatrix, ):
+            mat = self.input_data[self.name]
+            print self.name, '=', mat, [len(i) for i in mat]
+            for i in mat:
+
+                print i.as_string(schema='phylip')
+        print self.name, '=', self.input_data[self.name]
+        print
 
 class TimedTask(xylem.Task):
     def setup(self, task, label="time"):
@@ -171,7 +189,7 @@ class TimedTask(xylem.Task):
         self.task.cachefile = None
 
     def desc(self):
-        return "Timed " + self.task.desc()
+        return "Timed " + self.task.__class__.__name__ + ' / ' + self.task.desc()
     def inputs(self):
         return self.task.inputs()
     def outputs(self):
@@ -186,3 +204,19 @@ class TimedTask(xylem.Task):
         return self.result
 
 
+class Add(xylem.Task):
+    def setup(self, to_add, res):
+        self.to_add = to_add        
+        self.res = res
+
+    def inputs(self):
+        return [(i, float) for i in self.to_add]
+    
+    def outputs(self):
+        return [(self.res, float)]
+
+    def run(self):
+        
+        self.result = {self.res: sum([self.input_data[i] for i in self.to_add])}
+        print self.result
+        return self.result

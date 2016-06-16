@@ -29,6 +29,7 @@ import numpy as np
 import dendropy
 import copy
 import tempfile
+import time
 
 class WeightedQuartetSet:
     def __init__(self, tn, infile=None, mode='newick'):
@@ -186,23 +187,35 @@ class SVDQuartetFrequencies(xylem.Task):
         f = tempfile.NamedTemporaryFile(delete = False)
 
         dna.write_to_path(f.name + '.nex', 'nexus')
+        f.flush()
 
         import subprocess
 
+        t = time.time()
+
         pp = os.path.dirname(__file__) + '/parse_paup.sh'
-    
+        print "bash " + pp + " " + f.name
         out, err = subprocess.Popen(["bash", pp, f.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        print "Ran SVDQuartets in ", time.time() - t
 
-
+        t = time.time()
+        
 
         lines = self.eliminate_header(out.split('\n'))
         lines = self.eliminate_footer(lines)
-    
+        
+        print "cleaned up output in", time.time() - t
+
+        t = time.time()
+
         quartets = WeightedQuartetSet(taxon_namespace)
 
         for l in lines:
             (a,b,c,d), w = self.parse_line(l, taxon_namespace)
             quartets[(a,b,c,d)] = w
+
+        print "read quartets in", time.time() - t
+
         self.result = {"quartets":quartets}
         return self.result
 

@@ -35,7 +35,7 @@ class DependenciesNotCompleteException(Exception):
 class Task(object):
     cachefile_set = {}
     def __init__(self, *args, **kwargs):
-        self.stackframe = traceback.extract_stack()
+        self.stackframe = traceback.extract_stack()[:-1]
 
         cachefile=kwargs.pop('cachefile', None)
         local=kwargs.pop('local', False)
@@ -172,7 +172,11 @@ class Task(object):
         cache &= self.cache
         if cache and self.storefile():
             print "Writing to", self.storefile()
-            self.write(self.storefile())
+            try:
+                self.write(self.storefile())
+            except Exception, e:
+                print "Error writing cache:"
+                print e
         if self.storefile():
             print "should have written to", self.storefile()
         

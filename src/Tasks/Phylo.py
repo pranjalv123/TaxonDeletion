@@ -66,3 +66,27 @@ class CompareTrees(xylem.Task):
         return self.result
 
 
+class CalculateAD(xylem.Task):
+    def inputs(self):
+        return [("truespeciestree", dendropy.Tree), ("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("AD", float)]
+    def run(self):
+        st = self.input_data["truespeciestree"]
+        gt = self.input_data["genetrees"]
+        
+        distances = []
+
+        for t in gt:
+            st1 = st.clone()
+            t1 = t.clone()
+            t1.migrate_taxon_namespace(st1.taxon_namespace)
+            print [i.taxon for i in t1.leaf_node_iter()]
+            print [i.taxon for i in st1.leaf_node_iter()]
+            st1.retain_taxa([i.taxon for i in t1.leaf_node_iter()])
+            t1.retain_taxa([i.taxon for i in st1.leaf_node_iter()])
+
+            distances.append(float(dendropy.calculate.treecompare.symmetric_difference(t1, st1))/(2.0 * len(t1.leaf_nodes())))
+
+        self.result = {'AD':np.mean(distances)}
+        return self.result
