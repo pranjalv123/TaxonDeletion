@@ -58,7 +58,7 @@ class Pipeline:
         return task
     def verify(self):
         for t in self.tasks:
-            if t.outputs() == None:
+            if t._outputs() == None:
                 print t, "has invalid outputs()"
                 print traceback.format_list(t.stackframe)
             if t.inputs() == None:
@@ -67,11 +67,11 @@ class Pipeline:
             for i in t.inputs():
                 good = False
                 for d in t.depends():
-                    if i in d.outputs() or i == '*':
+                    if i in d._outputs() or i == '*':
                         good = True
                 if not good:
                     print "Dependency not found:", t, i
-                    print '\n'.join([':'.join([str(d), str(d.outputs())]) for d in t.depends()])
+                    print '\n'.join([':'.join([str(d), str(d._outputs())]) for d in t.depends()])
                     print ''.join(traceback.format_list(t.stackframe))
                     return False
         return True

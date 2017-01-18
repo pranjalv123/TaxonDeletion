@@ -50,6 +50,10 @@ class Task(object):
         self._status="waiting"
 
         self._dot_status="waiting"
+        
+        self.fwds = {}
+        self.fwd_outs = []
+        self.fwd_res = {}
 
         self.EXIT=False
         self.uid = uuid.uuid1()
@@ -77,15 +81,26 @@ class Task(object):
     #should be implemented here
 
     def is_result(self):
-        if len(self.outputs()) == 0:
+        if len(self._outputs()) == 0:
             return True
         return self._is_result
 
     #don't run until otherTask has run
-    def require(self, *tasks):
-        for otherTask in tasks:
-            self.dependencies.add(otherTask)
-            otherTask.depended.add(self)
+    def require(self, otherTask, fwd=[]):
+
+        self.dependencies.add(otherTask)
+        otherTask.depended.add(self)
+        
+        if otherTask not in self.fwds:
+            self.fwds[otherTask] = []
+        for f in fwd:
+            self.fwds[otherTask].append([i for i in otherTask._outputs() if i[0] == f][0])
+            
+        if fwd:
+            self.fwd_outs.extend(self.fwds[otherTask])
+
+        
+
         return self
     
     def depends(self): #return a list of tasks this depends on
@@ -97,12 +112,13 @@ class Task(object):
     def req_complete(self, otherTask): #called when a task this depends on is complete
         if self.status() == "complete":
             return
-        print otherTask.outputs()
-        task_outputs = set(otherTask.outputs())
+        print otherTask._outputs()
+        task_outputs = set(otherTask._outputs())
         
         for item in self.inputs():
             if item == "*":
                 for name, _ in task_outputs:
+                    print self, "*Getting", name, "from", otherTask
                     self.input_data[name] = otherTask.get_results()[name]
                 continue
             name, tpe = item
@@ -110,14 +126,23 @@ class Task(object):
                 if name not in self.input_data:
                     self.input_data[name] = []
                 if (name, tpe) in task_outputs:
+                    print self, "tupGetting", name, "from", otherTask
                     self.input_data[name].extend(otherTask.get_results()[name])
                 else:
                     for elem in tpe:
                         if (name, elem) in task_outputs:
+                            print self, "2tupGetting", name, "from", otherTask
                             self.input_data[name].append(otherTask.get_results()[name])
             else:
                 if item in task_outputs:
-                    self.input_data[name] = tpe( otherTask.get_results()[name])                
+                    if name in otherTask.get_results():
+                        if name in self.input_data:
+                            print "Duplicate!", name
+                        print self, "Getting", name, "from", otherTask
+                        self.input_data[name] = tpe( otherTask.get_results()[name])                
+
+        for name, tpe in self.fwds[otherTask]:
+            self.fwd_res[name] = otherTask.get_results()[name]
             
         for i in self.dependencies:
             if i.status() != "complete":
@@ -192,8 +217,12 @@ class Task(object):
         self._dot_status="running"
         t0 = time.time()
         self.result = self.run()
+
+
+        self.result.update(self.fwd_res)
+
         print "Running", self, "took", time.time() - t0, "seconds"
-        
+
         self.write_cache()
     
     def __hash__(self):
@@ -232,3 +261,6 @@ class Task(object):
         return []
     def outputs(self): #returns a set of attributes it will have in its output
         return []
+
+    def _outputs(self):
+        return self.outputs() + self.fwd_outs

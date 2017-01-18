@@ -30,11 +30,12 @@ import dendropy
 import sys
 
 class DeleteTaxaUniform(xylem.Task):
-    def setup(self, ndelete, gtrees=True, alignments=True, stree=True, *args, **kwargs):
+    def setup(self, ndelete, gtrees=True, alignments=True, stree=True, seed=None, *args, **kwargs):
         self.ndelete = ndelete
         self.gtrees=gtrees
         self.seqs=alignments
         self.stree = stree
+        self.seed = seed
     def inputs(self):
         inp = []
         if self.gtrees:
@@ -65,8 +66,11 @@ class DeleteTaxaUniform(xylem.Task):
                 st.migrate_taxon_namespace(tn)
             else:
                 tn = st.taxon_namespace
-
-        deletion_list = np.random.choice(list(tn), size=self.ndelete, replace=False)
+        if self.seed != None:
+            print "using seed", self.seed
+            np.random.seed(self.seed)
+        deletion_list = np.random.choice(sorted(list(tn), key=lambda x:x.label), size=self.ndelete, replace=False)
+        print "deleting", [i.label for i in deletion_list]
         self.result = {}
         if self.gtrees:
             for g in gt:

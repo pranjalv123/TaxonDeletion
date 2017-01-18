@@ -57,9 +57,14 @@ class CompareTrees(xylem.Task):
 
         print dendropy.calculate.treecompare.false_positives_and_negatives(truetree, estimatedtree)
         print dendropy.calculate.treecompare.symmetric_difference(truetree, estimatedtree)
+
+        print truetree
+        print estimatedtree
+
         print diff, len(truetree.internal_edges())
-        print diff/float(len(truetree.internal_edges()))
+        print "RF distance:",  diff/float(len(truetree.internal_edges()))
         self.result ={"rfdistance":diff/float(len(truetree.internal_edges()))}
+        print "RFResult:", self.result
         if self.outputfile:
             open(self.outputfile, 'a').write(self.tag + ',' + str(diff) + '\n')
             
@@ -89,4 +94,31 @@ class CalculateAD(xylem.Task):
             distances.append(float(dendropy.calculate.treecompare.symmetric_difference(t1, st1))/(2.0 * len(t1.leaf_nodes())))
 
         self.result = {'AD':np.mean(distances)}
+        return self.result
+
+
+class CalculateEstimationError(xylem.Task):
+    def inputs(self):
+        return [("truegenetrees", dendropy.TreeList), ("genetrees", dendropy.TreeList)]
+    def outputs(self):
+        return [("esterr", float)]
+    def run(self):
+        tgt = self.input_data["truegenetrees"]
+        gt = self.input_data["genetrees"]
+        
+        distances = []
+        print len(tgt), len(gt)
+
+        assert(len(tgt) == len(gt))
+
+        for t, g in zip(tgt, gt):
+            t.migrate_taxon_namespace(g.taxon_namespace)
+            ttax = set([i.taxon for i in t.leaf_node_iter()])
+            gtax = set([i.taxon for i in g.leaf_node_iter()])
+            t.retain_taxa([i.taxon for i in g.leaf_node_iter()])
+            g.retain_taxa([i.taxon for i in t.leaf_node_iter()])
+            distances.append(float(dendropy.calculate.treecompare.symmetric_difference(t, g))/(2.0 * len(t.leaf_nodes())))
+            print "GT distance", distances[-1]
+        print "Mean GT distance", np.mean(distances)
+        self.result = {'esterr':np.mean(distances)}
         return self.result

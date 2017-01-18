@@ -1,6 +1,7 @@
 import dendropy
 import xylem.Task
 import os
+from xylem.Tasks import *
 
 class WriteSpeciesTree(xylem.Task):
     def setup(self, location, *args, **kwargs):
@@ -53,6 +54,25 @@ class WritePhylip(xylem.Task):
         return self.result
 
 
+class WriteQuartets(xylem.Task):
+    def setup(self, location, *args, **kwargs):
+        self.path = location
+        self.local = True
+    def desc(self):
+        return self.path
+    def inputs(self):
+        return [("quartets", Quartets.WeightedQuartetSet)]
+    def outputs(self):
+        return []
+    def run(self):
+        stream = open(self.path, 'w')
+        q = self.input_data["quartets"]
+        q.write(stream, 'newick')
+        self.result = {}
+        return self.result
+
+
+
 import fcntl
 
 class WriteScore(xylem.Task):
@@ -77,7 +97,8 @@ class WriteScore(xylem.Task):
         return self.result
 
 class WriteAttrs(xylem.Task):
-    def setup(self, location, desc, attrs, consts = {}):
+    def setup(self, location, desc, attrs, consts = None):
+
         self.path = location
         self.description = desc
         self.attrs = []
@@ -96,7 +117,10 @@ class WriteAttrs(xylem.Task):
         if os.path.getsize(location) == 0:
             f.write('description' + ',' + ','.join(self.attrs) + '\n')
         f.close()
-        self.consts = consts
+        if consts:
+            self.consts = consts
+        else:
+            self.consts = {}
         
     def desc(self):
         return self.path + ':' + self.description
@@ -105,8 +129,11 @@ class WriteAttrs(xylem.Task):
     def outputs(self):
         return []
     def run(self):
+        print "HERE Running WriteAttrs"
+        print self.consts
+        print self.input_data
         self.consts.update(self.input_data)
-
+        print self.consts
         s = self.description + ',' + ','.join((str(self.consts[i]) for i in self.attrs))
         
         f = open(self.path, 'a')

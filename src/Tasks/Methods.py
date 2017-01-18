@@ -27,7 +27,6 @@ import numpy as np
 import subprocess
 import StringIO
 import uuid
-import ASTRID
 import dendropy
 import tempfile
 import os
@@ -35,7 +34,7 @@ import time
 import multiprocessing
 
 
-def estimate_tree(seq):
+def estimate_tree_fasttree(seq):
     f = tempfile.NamedTemporaryFile(delete = False)
     seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
     f.close()
@@ -74,18 +73,23 @@ class RunFastTree(xylem.Task):
 
         pool = multiprocessing.Pool(self.parallelism)
 
-        genetrees = pool.map(estimate_tree, self.seqs)
+        genetrees = pool.map(estimate_tree_fasttree, self.seqs)
         
         self.result = {"genetrees":genetrees}
         return self.result
 
 class RunRaxml(xylem.Task):
-    def setup(self, model="GTRGAMMA", complete=False):
+    def setup(self, model="GTRGAMMA", complete=False, FastTreeFallback=False, tolerateFailure=False, outputStree=False):
+        self.FastTreeFallback = FastTreeFallback
         self.model = model
+        self.tolerateFailure = tolerateFailure
         self.complete = complete
+        self.outputStree = outputStree
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
+        if self.outputStree:
+            return [("estimatedspeciestree", dendropy.Tree)]
         return [("genetrees", dendropy.TreeList)]
     
     def desc(self):
@@ -95,20 +99,48 @@ class RunRaxml(xylem.Task):
         self.seqs = self.input_data["alignments"]
         genetrees = dendropy.TreeList()
 
+        if self.outputStree:
+            assert(len(self.seqs) == 1)
+
+        count = 0
+
         for seq in self.seqs:
+            print "Sequence", count
+            count += 1
             f = tempfile.NamedTemporaryFile(delete = False)
             seq.write_to_stream(f, schema="phylip", suppress_missing_taxa=True, max_line_length=2500)
             f.close()
             
             args = ['raxml', '-m', self.model, '-n', os.path.basename(f.name), '-p', '12345', '-s', f.name]
             print ' '.join(args)
-            subprocess.Popen(args).wait()
-            genetrees.append(dendropy.Tree.get_from_path('RAxML_result.' + os.path.basename(f.name), 'newick'))
-            l = [os.remove('RAxML_' + i + '.' + os.path.basename(f.name)) for i in ['parsimonyTree', 'log', 'result', 'info', 'bestTree']]
-            
+            try:
+                subprocess.Popen(args).wait()
+                t = dendropy.Tree.get_from_path('RAxML_result.' + os.path.basename(f.name), 'newick')
+                assert(len(t.leaf_nodes()) == len(seq))
+                genetrees.append(t)
+            except Exception as e:
+                print e
+                if self.FastTreeFallback:
+                    print "Falling back to FastTree"
+                    genetrees.append(estimate_tree_fasttree(seq))
+                elif not self.tolerateFailure:
+                    print "RAxML Failed!!!", f.name
+                    exit()
+            finally:
+                
+
+                for i in ['parsimonyTree', 'log', 'result', 'info', 'bestTree']:
+                    try:
+                        os.remove('RAxML_' + i + '.' + os.path.basename(f.name))
+                    except:
+                        pass
+        assert(len(genetrees) == len(self.seqs))
         if self.complete:
             assert(len(genetrees[0].leaf_nodes()) == len(genetrees.taxon_namespace))
-        self.result = {"genetrees":genetrees}
+        if self.outputStree:
+            self.result = {"estimatedspeciestree":genetrees[0]}
+        else:
+            self.result = {"genetrees":genetrees}
         return self.result
 
     
@@ -125,7 +157,7 @@ class RunASTRID(xylem.Task):
     def outputs(self):
         return [("estimatedspeciestree", dendropy.Tree)]
     def run(self):
-        print "RUNNING ASTRAL"
+        print "RUNNING ASTRID"
         f = tempfile.NamedTemporaryFile(delete=False)
         g = tempfile.NamedTemporaryFile(delete=False)
         gt = self.input_data["genetrees"]
@@ -143,9 +175,9 @@ class RunASTRID(xylem.Task):
         return self.result
 
 class RunASTRAL(xylem.Task):
-    def setup(self, extraTrees = False):
+    def setup(self, extraTrees = False, exact=False):
         self.extraTrees = extraTrees
-
+        self.exact=exact
     def desc(self):
         return ""
     def inputs(self):
@@ -168,7 +200,8 @@ class RunASTRAL(xylem.Task):
             gt = dendropy.TreeList([i for i in gt if len(i.leaf_nodes()) > 3])
             gt.write(path=f.name, schema='newick')
             args += ['-e', f.name]
-            
+        if self.exact:
+            args += ['-x']
         print " ".join(args)
         proc = subprocess.Popen(args, stdout=subprocess.PIPE)
         streestr, err = proc.communicate()
@@ -334,7 +367,7 @@ class RunSVDQuartets(xylem.Task):
 
         del_list = []
         for t in taxon_namespace:
-            if len(dna[t]) == 0:
+            if len([i for i in dna[t] if i != "-"]) == 0:
                 del_list.append(t)
 
         for t in del_list:
@@ -362,7 +395,8 @@ class RunSVDQuartets(xylem.Task):
             print e
             print out, err
             exit(0)
-        
+            
+        print out, err
         self.result = {"estimatedspeciestree":tree}
         return self.result
 
