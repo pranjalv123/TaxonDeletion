@@ -124,6 +124,41 @@ class DeleteTaxaRandom(xylem.Task):
         self.result = {"alignments":dna, "genetrees":gt}
         return self.result
 
+    
+class DeleteTaxaRandomList(xylem.Task):
+    def setup(self, ndelete, *args, **kwargs):
+        self.ndelete = ndelete
+
+    def inputs(self):
+        return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,))]
+    def outputs(self):
+        return [("genetrees", dendropy.TreeList), ("alignments", (dendropy.DnaCharacterMatrix,))]
+
+    def run(self):
+        debug = False
+        if '--debug' in sys.argv:
+            debug = True
+        dna = [i.clone() for i in self.input_data["alignments"]]
+        gt = self.input_data["genetrees"].clone()
+        gt.migrate_taxon_namespace(dna[0].taxon_namespace)
+        for seq, g, nd in zip(dna, gt, self.ndelete):
+            if debug:
+                print g
+            taxon_list = [i.taxon for i in g.leaf_nodes()]                            
+
+            deletion_list = np.random.choice(taxon_list, size=nd, replace=False)
+            if debug:
+                print deletion_list
+            g.prune_taxa(deletion_list)
+            if debug:
+                print g
+                print
+            seq.discard_sequences(deletion_list)
+        self.result = {"alignments":dna, "genetrees":gt}
+        return self.result
+
+
+
 class LimitSeqLength(xylem.Task):
     def setup(self, maxlen, *args, **kwargs):
         self.maxlen = maxlen

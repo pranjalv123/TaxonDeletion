@@ -79,12 +79,13 @@ class RunFastTree(xylem.Task):
         return self.result
 
 class RunRaxml(xylem.Task):
-    def setup(self, model="GTRGAMMA", complete=False, FastTreeFallback=False, tolerateFailure=False, outputStree=False):
+    def setup(self, model="GTRGAMMA", complete=False, FastTreeFallback=False, tolerateFailure=False, outputStree=False, startingTreeOnly = False):
         self.FastTreeFallback = FastTreeFallback
         self.model = model
         self.tolerateFailure = tolerateFailure
         self.complete = complete
         self.outputStree = outputStree
+        self.startingTreeOnly = startingTreeOnly
     def inputs(self):
         return [("alignments", (dendropy.DnaCharacterMatrix,))]
     def outputs(self):
@@ -112,10 +113,16 @@ class RunRaxml(xylem.Task):
             f.close()
             
             args = ['raxml', '-m', self.model, '-n', os.path.basename(f.name), '-p', '12345', '-s', f.name]
+            if self.startingTreeOnly:
+                args += ['-y']
+                
             print ' '.join(args)
             try:
                 subprocess.Popen(args).wait()
-                t = dendropy.Tree.get_from_path('RAxML_result.' + os.path.basename(f.name), 'newick')
+                if self.startingTreeOnly:
+                    t = dendropy.Tree.get_from_path('RAxML_parsimonyTree.' + os.path.basename(f.name), 'newick')
+                else:
+                    t = dendropy.Tree.get_from_path('RAxML_result.' + os.path.basename(f.name), 'newick')
                 assert(len(t.leaf_nodes()) == len(seq))
                 genetrees.append(t)
             except Exception as e:
@@ -552,7 +559,7 @@ class RunPlumist(xylem.Task):
         
 class RunTreeCompleter(xylem.Task):
     def inputs(self):
-        return [("genetrees", dendropy.TreeList), ("completetree", dendropy.Tree)]
+        return [("genetrees", dendropy.TreeList), ("estimatedspeciestree", dendropy.Tree)]
     def outputs(self):
         return [("genetrees", dendropy.TreeList)]    
     def run(self):
@@ -560,7 +567,7 @@ class RunTreeCompleter(xylem.Task):
         gt = self.input_data["genetrees"]
         gt.write_to_stream(f, schema='newick', suppress_edge_lengths=True)
         
-        st = self.input_data["completetree"]
+        st = self.input_data["estimatedspeciestree"]
         st.write_to_stream(f, schema='newick', suppress_edge_lengths=True)
         
         print "gene trees:", len(gt)

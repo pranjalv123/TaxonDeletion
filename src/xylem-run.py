@@ -31,14 +31,18 @@ echo $$JOBID
 
 cd $$PBS_O_WORKDIR
 mkdir -p  out.$$JOBID
+mkdir -p  out.$$JOBID/logs/
 cd  out.$$JOBID
 
-
+cp ../$scriptname .
 
 for i in $$(seq $$PBS_ARRAYID  $njobs $ntasks )
 do
     python ../$scriptname  --nodot --single $$i --job $$JOBID $extra_args
 done
+
+mv $$LOGNAME logs/
+
 """
 
 class Xylem:

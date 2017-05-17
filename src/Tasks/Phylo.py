@@ -86,8 +86,8 @@ class CalculateAD(xylem.Task):
             st1 = st.clone()
             t1 = t.clone()
             t1.migrate_taxon_namespace(st1.taxon_namespace)
-            print [i.taxon for i in t1.leaf_node_iter()]
-            print [i.taxon for i in st1.leaf_node_iter()]
+            print [i.taxon.label for i in t1.leaf_node_iter()]
+            print [i.taxon.label for i in st1.leaf_node_iter()]
             st1.retain_taxa([i.taxon for i in t1.leaf_node_iter()])
             t1.retain_taxa([i.taxon for i in st1.leaf_node_iter()])
 

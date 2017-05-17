@@ -184,13 +184,13 @@ class Task(object):
         if cache and (not regen) and self.storefile():
             try:
                 t0 = time.time()
-                print "Trying to read cache of", self, "from", self.storefile()
+#                print "Trying to read cache of", self, "from", self.storefile()
                 self.result = self.read(self.storefile())
                 if self.result:
                     print "Reading cache of", self, "took", time.time() - t0, "seconds"
                     return True
             except Exception as e:
-                print "Failed", e
+#                print "Failed", e
                 return False
 
     def write_cache(self, cache=True, regen=False):
